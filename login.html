@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LirpeHub - Entrar ou Cadastrar-se</title>
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo-container">
+            <a href="index.html" class="logo"><span class="lirpe">Lirpe</span><span class="hub">Hub</span></a>
+        </div>
+        <nav class="nav-links">
+            <a href="index.html">Página Inicial</a> | 
+            <a href="enviar.html">Enviar Vídeo</a>
+        </nav>
+    </header>
+
+    <div class="container" style="max-width: 450px; margin: 40px auto;">
+        <div class="video-details-box">
+            <h2 id="formTitle">Entrar no LirpeHub</h2>
+            <p id="formDesc" style="font-size: 11px; color: #666; margin-bottom: 15px;">Faça login para gerenciar e enviar seus vídeos!</p>
+            <hr>
+
+            <form id="authForm">
+                <div id="usernameField" style="display: none; margin-bottom: 10px;">
+                    <label>Apelido / Nome do Canal:</label><br>
+                    <input type="text" id="username" placeholder="Ex: LirpeiroGamer" style="width: 100%; box-sizing: border-box;">
+                </div>
+
+                <label>Endereço de E-mail:</label><br>
+                <input type="email" id="email" required style="width: 100%; margin-bottom: 10px; box-sizing: border-box;"><br>
+
+                <label>Senha:</label><br>
+                <input type="password" id="password" required style="width: 100%; margin-bottom: 15px; box-sizing: border-box;"><br>
+
+                <button type="submit" id="submitBtn" class="btn-classic" style="width: 100%;">Entrar</button>
+            </form>
+
+            <div id="authStatus" style="margin-top: 10px; font-weight: bold; font-size: 12px; text-align: center;"></div>
+
+            <hr style="margin-top: 15px;">
+            <p style="text-align: center; font-size: 11px; margin: 5px 0;">
+                <span id="switchText">Não tem uma conta de Lirpeiro?</span> 
+                <a href="#" id="switchLink" style="font-weight: bold; color: #0033CC;">Cadastre-se aqui</a>
+            </p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+    <script src="js/config.js"></script>
+    
+    <script>
+        let supabaseClient = null;
+        const authStatus = document.getElementById('authStatus');
+
+        // Espera carregar o DOM e as configurações do config.js
+        window.addEventListener('DOMContentLoaded', () => {
+            // Proteção para verificar se o arquivo config.js existe e foi importado
+            if (typeof CONFIG === 'undefined') {
+                console.error("Erro: O arquivo de configurações js/config.js está ausente.");
+                authStatus.innerText = "Erro: Configuração do Supabase pendente.";
+                authStatus.style.color = "red";
+                return;
+            }
+
+            // Inicialização segura utilizando as variáveis do config.js
+            try {
+                supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+            } catch (err) {
+                console.error("Erro ao inicializar o Supabase:", err);
+                authStatus.innerText = "Erro ao conectar com o banco de dados.";
+                authStatus.style.color = "red";
+            }
+        });
+
+        let isSignUpMode = false;
+
+        const authForm = document.getElementById('authForm');
+        const formTitle = document.getElementById('formTitle');
+        const formDesc = document.getElementById('formDesc');
+        const usernameField = document.getElementById('usernameField');
+        const usernameInput = document.getElementById('username');
+        const submitBtn = document.getElementById('submitBtn');
+        const switchLink = document.getElementById('switchLink');
+        const switchText = document.getElementById('switchText');
+
+        // Alternar entre modo de Login e Cadastro
+        switchLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            isSignUpMode = !isSignUpMode;
+            authStatus.innerText = "";
+
+            if (isSignUpMode) {
+                formTitle.innerText = "Criar Conta no LirpeHub";
+                formDesc.innerText = "Cadastre-se para fazer parte da comunidade de Lirpeiros!";
+                usernameField.style.display = "block";
+                usernameInput.required = true;
+                submitBtn.innerText = "Criar Minha Conta!";
+                switchText.innerText = "Já tem uma conta?";
+                switchLink.innerText = "Faça Login";
+            } else {
+                formTitle.innerText = "Entrar no LirpeHub";
+                formDesc.innerText = "Faça login para gerenciar e enviar seus vídeos!";
+                usernameField.style.display = "none";
+                usernameInput.required = false;
+                submitBtn.innerText = "Entrar";
+                switchText.innerText = "Não tem uma conta de Lirpeiro?";
+                switchLink.innerText = "Cadastre-se aqui";
+            }
+        });
+
+        // Evento de Envio do Formulário
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!supabaseClient) {
+                authStatus.innerText = "Erro: Banco de dados não disponível.";
+                authStatus.style.color = "red";
+                return;
+            }
+
+            authStatus.innerText = "Processando...";
+            authStatus.style.color = "black";
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (isSignUpMode) {
+                const username = usernameInput.value;
+
+                // 1. Registrar Usuário no Auth do Supabase
+                const { data, error } = await supabaseClient.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            display_name: username // Salva o apelido no perfil do usuário
+                        }
+                    }
+                });
+
+                if (error) {
+                    authStatus.innerText = "Erro ao cadastrar: " + error.message;
+                    authStatus.style.color = "red";
+                } else {
+                    authStatus.innerText = "Cadastro realizado! Redirecionando...";
+                    authStatus.style.color = "green";
+                    setTimeout(() => { window.location.href = "index.html"; }, 2000);
+                }
+            } else {
+                // 2. Fazer Login do Usuário
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    authStatus.innerText = "Erro ao entrar: " + error.message;
+                    authStatus.style.color = "red";
+                } else {
+                    authStatus.innerText = "Login bem-sucedido! Entrando...";
+                    authStatus.style.color = "green";
+                    setTimeout(() => { window.location.href = "index.html"; }, 1500);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

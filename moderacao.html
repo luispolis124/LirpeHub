@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LirpeHub - Painel de Moderação</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <style>
+        .mod-container {
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 0 10px;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        .mod-header {
+            background: #FFEBEB;
+            border: 1px solid #CC0000;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #CC0000;
+        }
+
+        .mod-header h2 {
+            margin: 0 0 5px 0;
+            font-size: 18px;
+        }
+
+        .mod-header p {
+            margin: 0;
+            font-size: 12px;
+            color: #555;
+        }
+
+        /* Tabela de Moderação Clássica */
+        .mod-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 12px;
+        }
+
+        .mod-table th, .mod-table td {
+            border: 1px solid #CCCCCC;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .mod-table th {
+            background: #F0F3F8;
+            color: #333;
+        }
+
+        .mod-table tr:hover {
+            background: #F9F9F9;
+        }
+
+        .mod-thumb {
+            width: 80px;
+            height: auto;
+            border: 1px solid #999;
+        }
+
+        /* Botões Estilo Retro */
+        .btn-approve {
+            background: #E2F0D9;
+            border: 1px solid #385723;
+            color: #385723;
+            padding: 3px 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .btn-delete {
+            background: #FCE4D6;
+            border: 1px solid #C65911;
+            color: #C65911;
+            padding: 3px 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .btn-approve:hover { background: #D5E8D4; }
+        .btn-delete:hover { background: #F8CBAD; }
+
+        @media (max-width: 768px) {
+            .mod-table, .mod-table thead, .mod-table tbody, .mod-table th, .mod-table td, .mod-table tr {
+                display: block;
+            }
+            .mod-table thead {
+                display: none;
+            }
+            .mod-table tr {
+                margin-bottom: 15px;
+                border: 1px solid #CCC;
+                background: #FFF;
+            }
+            .mod-table td {
+                border: none;
+                border-bottom: 1px dashed #EEE;
+                position: relative;
+                padding-left: 40%;
+            }
+            .mod-table td:before {
+                position: absolute;
+                top: 8px;
+                left: 10px;
+                width: 35%;
+                font-weight: bold;
+                white-space: nowrap;
+                content: attr(data-label);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="logo-container">
+            <a href="index.html" class="logo" style="text-decoration: none;">
+                <span class="lirpe">Lirpe</span><span class="hub">Hub</span>
+            </a>
+            <span class="slogan">Área Administrativa</span>
+        </div>
+        <nav class="nav-links">
+            <a href="index.html">Página Inicial</a> | 
+            <a href="moderacao.html" class="active">Moderação</a>
+        </nav>
+    </header>
+
+    <div class="mod-container">
+        
+        <div class="mod-header">
+            <h2>🛡️ Central de Moderação do LirpeHub</h2>
+            <p>Monitore denúncias de conteúdo impróprio enviadas pela comunidade e tome providências imediatas.</p>
+        </div>
+
+        <h3 style="border-bottom: 1px solid #CCC; padding-bottom: 5px; font-size: 14px; color: #333;">
+            ⚠️ Vídeos Aguardando Revisão
+        </h3>
+
+        <table class="mod-table">
+            <thead>
+                <tr>
+                    <th style="width: 100px;">Miniatura</th>
+                    <th>Detalhes do Vídeo</th>
+                    <th>Motivo da Denúncia</th>
+                    <th style="width: 160px;">Ações</th>
+                </tr>
+            </thead>
+            <tbody id="listaDenuncias">
+                <tr>
+                    <td colspan="4" style="text-align: center; color: #666; font-style: italic; padding: 15px;">
+                        Carregando denúncias pendentes...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+    <footer class="main-footer">
+        <p>&copy; 2005 LirpeHub, Inc. | Painel Restrito a Administradores</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer crossorigin="anonymous"></script>
+    <script src="js/config.js" defer></script>
+    
+    <script>
+        let supabaseClient = null;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Verifica se as configurações foram carregadas
+            if (typeof CONFIG === 'undefined') {
+                console.error("Erro: js/config.js não encontrado.");
+                return;
+            }
+
+            if (typeof supabase !== 'undefined') {
+                supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+                await verificarAcessoEMostrar();
+            }
+        });
+
+        async function verificarAcessoEMostrar() {
+            try {
+                // Em um sistema real, aqui você validaria se o usuário tem permissão de 'admin'
+                await carregarDenuncias();
+            } catch (err) {
+                console.error(err);
+                document.getElementById('listaDenuncias').innerHTML = `<tr><td colspan="4" style="color: red; text-align: center;">Erro de autenticação.</td></tr>`;
+            }
+        }
+
+        async function carregarDenuncias() {
+            const tbody = document.getElementById('listaDenuncias');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Buscando dados...</td></tr>';
+
+            try {
+                let { data: videosDenunciados, error } = await supabaseClient
+                    .from('videos')
+                    .select('*')
+                    .eq('denunciado', true)
+                    .order('id', { ascending: false });
+
+                if (error) throw error;
+
+                if (!videosDenunciados || videosDenunciados.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: green; font-weight: bold; padding: 20px;">🎉 Nenhum vídeo denunciado no momento! O site está limpo.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                videosDenunciados.forEach(video => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td data-label="Miniatura">
+                            <img src="${video.thumb}" class="mod-thumb" onerror="this.src='https://placehold.co/80x50?text=Sem+Imagem';">
+                        </td>
+                        <td data-label="Detalhes do Vídeo">
+                            <strong><a href="watch.html?v=${video.id}" target="_blank" style="color: #0033CC; font-size: 13px;">${video.titulo}</a></strong><br>
+                            <span style="color: #666;">Canal: ${video.autor} | ID: ${video.id}</span>
+                        </td>
+                        <td data-label="Motivo da Denúncia" style="color: #C65911; font-weight: bold;">
+                            ${video.motivo_denuncia || "Não especificado"}
+                        </td>
+                        <td data-label="Ações">
+                            <button class="btn-approve" onclick="ignorarDenuncia('${video.id}')">Aprovar (Manter)</button>
+                            <button class="btn-delete" onclick="deletarVideo('${video.id}')" style="margin-top: 5px;">Deletar Vídeo</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="4" style="color: red; text-align: center;">Erro ao carregar banco de dados.</td></tr>`;
+            }
+        }
+
+        async function ignorarDenuncia(id) {
+            if (confirm("Deseja rejeitar a denúncia e manter o vídeo no ar?")) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('videos')
+                        .update({ denunciado: false, motivo_denuncia: null })
+                        .eq('id', id);
+
+                    if (error) throw error;
+                    alert("Vídeo aprovado com sucesso!");
+                    carregarDenuncias();
+                } catch (err) {
+                    alert("Erro ao aprovar o vídeo: " + err.message);
+                }
+            }
+        }
+
+        async function deletarVideo(id) {
+            if (confirm("ATENÇÃO: Deseja realmente excluir este vídeo de forma PERMANENTE?")) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('videos')
+                        .delete()
+                        .eq('id', id);
+
+                    if (error) throw error;
+                    alert("Vídeo removido definitivamente!");
+                    carregarDenuncias();
+                } catch (err) {
+                    alert("Erro ao deletar o vídeo: " + err.message);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

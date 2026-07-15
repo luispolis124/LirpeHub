@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LirpeHub - Broadcast Yourself</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <style>
+        .watch-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1000px;
+            margin: 15px auto;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+
+        .main-video-section {
+            flex: 3;
+            min-width: 0;
+        }
+
+        .sidebar-section {
+            flex: 1;
+            min-width: 260px;
+        }
+
+        .video-player-box {
+            position: relative;
+            padding-bottom: 56.25%; /* Aspect Ratio 16:9 */
+            height: 0;
+            overflow: hidden;
+            border: 1px solid #CCCCCC;
+            background: #000;
+        }
+
+        .video-player-box iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .video-details-box {
+            border: 1px solid #CCD2E0;
+            background: #F0F3F8;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .video-details-box h1 {
+            font-size: 16px;
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .video-meta-row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #CCD2E0;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+        }
+
+        .rating-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rating-box {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stars-container {
+            display: inline-flex;
+            flex-direction: row-reverse;
+            cursor: pointer;
+        }
+
+        .star-item {
+            font-size: 16px;
+            color: #CCCCCC;
+            transition: color 0.1s ease;
+        }
+
+        .star-item:hover,
+        .star-item:hover ~ .star-item {
+            color: #FFCC00;
+        }
+
+        .stars-container.rated .star-item {
+            cursor: default;
+        }
+
+        .share-box {
+            border: 1px solid #CCCCCC;
+            background: #FFF;
+            padding: 8px;
+            margin-top: 10px;
+            font-size: 11px;
+        }
+
+        .share-input-group {
+            display: flex;
+            gap: 5px;
+            margin-top: 4px;
+        }
+
+        .share-input-group input {
+            flex: 1;
+            padding: 3px;
+            border: 1px solid #999;
+            font-family: monospace;
+            font-size: 11px;
+        }
+
+        .btn-flag {
+            background: #FCE4D6;
+            border: 1px solid #C65911;
+            color: #C65911;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 6px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-flag:hover {
+            background: #F8CBAD;
+        }
+
+        @media (max-width: 768px) {
+            .watch-container {
+                flex-direction: column;
+            }
+            .sidebar-section {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="logo-container">
+            <a href="index.html" class="logo" style="text-decoration: none;">
+                <span class="lirpe">Lirpe</span><span class="hub">Hub</span>
+            </a>
+            <span class="slogan">Broadcast Yourself</span>
+        </div>
+        <nav class="nav-links">
+            <a href="index.html">Página Inicial</a> | 
+            <a href="javascript:void(0);" onclick="redirecionarParaCanal()">Canais</a> |
+            <a href="enviar.html" style="color: #CC0000; font-weight: bold;">Enviar Vídeo</a>
+        </nav>
+    </header>
+
+    <div class="container watch-container">
+        
+        <main class="main-video-section">
+            <div class="video-player-box">
+                <iframe id="videoPlayer" src="" frameborder="0" allowfullscreen></iframe>
+            </div>
+
+            <div class="video-details-box">
+                <h1 id="videoTitle">Carregando título...</h1>
+                
+                <div class="video-meta-row">
+                    <div class="author-info">
+                        Adicionado por: <a href="#" id="videoAuthor" class="user-link" style="color: #0033CC; font-weight: bold; text-decoration: none;">...</a>
+                    </div>
+                    <div class="stats-info">
+                        <span id="videoViews" class="views-count">0</span> visualizações
+                    </div>
+                </div>
+
+                <div class="rating-row">
+                    <div class="rating-box">
+                        <span>Avaliação:</span>
+                        <div class="stars-container" id="starsContainer">
+                            <span class="star-item" data-value="5">★</span>
+                            <span class="star-item" data-value="4">★</span>
+                            <span class="star-item" data-value="3">★</span>
+                            <span class="star-item" data-value="2">★</span>
+                            <span class="star-item" data-value="1">★</span>
+                        </div>
+                        <span id="ratingStatus" style="font-size: 11px; color: #666;">(Calculando...)</span>
+                    </div>
+                    <button class="btn-flag" id="flagBtn">🚩 Denunciar Conteúdo</button>
+                </div>
+            </div>
+
+            <div class="share-box">
+                <strong>🔗 Compartilhar este vídeo:</strong>
+                <div class="share-input-group">
+                    <input type="text" id="shareUrl" readonly onclick="this.select()">
+                    <button class="btn-classic" onclick="copiarTexto('shareUrl')" style="font-size: 10px; padding: 2px 5px;">Copiar</button>
+                </div>
+            </div>
+
+            <div class="comments-section" style="margin-top: 15px;">
+                <h3>Comentários</h3>
+                <div class="comment-box">
+                    <textarea id="commentInput" placeholder="Escreva um comentário público... (É necessário estar logado)" style="width: 100%; height: 50px; box-sizing: border-box; margin-bottom: 5px;"></textarea>
+                    <button class="btn-classic" id="postCommentBtn" style="padding: 3px 10px; font-size: 11px; cursor: pointer;">Postar Comentário</button>
+                </div>
+                
+                <div class="comments-list" id="commentsList">
+                    <div class="classic-comment" style="border-bottom: 1px dashed #CCC; padding: 8px 0;">
+                        <p style="color: #666; font-style: italic;">Carregando comentários do Supabase...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <aside class="sidebar-section">
+            <h2 class="sidebar-title" style="font-size: 13px; background: #EAEAEA; border: 1px solid #CCCCCC; padding: 5px; margin: 0 0 10px 0;">Vídeos Relacionados</h2>
+            <div class="related-videos" id="relatedVideosContainer"></div>
+        </aside>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer crossorigin="anonymous"></script>
+    <script src="js/config.js" defer></script>
+
+    <script>
+        let supabaseClient = null;
+        let idVideoAtual = null;
+        let videoData = null;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Verifica se o arquivo config.js foi carregado corretamente
+            if (typeof CONFIG === 'undefined') {
+                console.error("Erro: js/config.js não encontrado.");
+                return;
+            }
+
+            if (typeof supabase !== 'undefined') {
+                supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+                await iniciarPagina();
+            }
+
+            const flagBtn = document.getElementById('flagBtn');
+            flagBtn?.addEventListener('click', () => idVideoAtual && denunciarVideoAtual(idVideoAtual));
+
+            const postCommentBtn = document.getElementById('postCommentBtn');
+            postCommentBtn?.addEventListener('click', postarComentario);
+
+            document.querySelectorAll('.star-item').forEach(star => {
+                star.addEventListener('click', (e) => salvarAvaliacao(parseInt(e.target.getAttribute('data-value'))));
+            });
+        });
+
+        async function iniciarPagina() {
+            const urlParams = new URLSearchParams(window.location.search);
+            idVideoAtual = urlParams.get('v');
+            document.getElementById('shareUrl').value = window.location.href;
+
+            if (!idVideoAtual) return;
+
+            try {
+                const { data: video } = await supabaseClient
+                    .from('videos')
+                    .select('*')
+                    .eq('id', idVideoAtual)
+                    .single();
+
+                if (video) {
+                    videoData = video;
+                    carregarDadosVideo(video);
+                    carregarComentarios(idVideoAtual);
+                    registrarVisualizacao(video);
+                    
+                    const { data: outros } = await supabaseClient
+                        .from('videos')
+                        .select('*')
+                        .neq('id', idVideoAtual)
+                        .limit(5);
+                    carregarRecomendados(outros || []);
+                }
+            } catch (err) {
+                console.error("Erro ao carregar dados do vídeo:", err);
+            }
+        }
+
+        async function registrarVisualizacao(video) {
+            let vis = parseInt(String(video.visualizacoes || '0').replace(/,/g, '')) + 1;
+            await supabaseClient.from('videos').update({ visualizacoes: vis.toLocaleString() }).eq('id', video.id);
+            document.getElementById('videoViews').innerText = vis.toLocaleString();
+        }
+
+        function carregarDadosVideo(video) {
+            document.getElementById('videoPlayer').src = video.embedUrl;
+            document.getElementById('videoTitle').innerText = video.titulo;
+            const authorLink = document.getElementById('videoAuthor');
+            authorLink.innerText = video.autor;
+            authorLink.href = `canais.html?user=${encodeURIComponent(video.autor)}`; 
+            document.getElementById('videoViews').innerText = video.visualizacoes;
+            atualizarEstrelasVisualizacao(video);
+        }
+
+        function atualizarEstrelasVisualizacao(video) {
+            const media = Math.round((video.soma_rating || 5) / (video.total_rating || 1));
+            document.querySelectorAll('.star-item').forEach(star => {
+                star.style.color = parseInt(star.getAttribute('data-value')) <= media ? '#FFCC00' : '#CCCCCC';
+            });
+            document.getElementById('ratingStatus').innerText = `(${media}/5 de ${video.total_rating || 1} avaliações)`;
+        }
+
+        async function salvarAvaliacao(valor) {
+            const novaSoma = (videoData.soma_rating || 0) + valor;
+            const novoTotal = (videoData.total_rating || 0) + 1;
+            await supabaseClient.from('videos').update({ soma_rating: novaSoma, total_rating: novoTotal }).eq('id', idVideoAtual);
+            videoData.soma_rating = novaSoma;
+            videoData.total_rating = novoTotal;
+            atualizarEstrelasVisualizacao(videoData);
+            document.getElementById('starsContainer').classList.add('rated');
+        }
+
+        async function carregarComentarios(vId) {
+            const { data } = await supabaseClient.from('comentarios').select('*').eq('video_id', vId).order('id', { ascending: false });
+            const list = document.getElementById('commentsList');
+            list.innerHTML = data?.map(c => `<div style="border-bottom: 1px dashed #CCC; padding: 8px 0;"><span style="font-weight: bold; color: #0033CC;">${c.autor}:</span><p>${c.texto}</p></div>`).join('') || '<p>Seja o primeiro a comentar!</p>';
+        }
+
+        async function postarComentario() {
+            const texto = document.getElementById('commentInput').value.trim();
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) return alert("Faça login para comentar!");
+            await supabaseClient.from('comentarios').insert([{ video_id: idVideoAtual, autor: session.user.user_metadata?.display_name, texto }]);
+            document.getElementById('commentInput').value = '';
+            carregarComentarios(idVideoAtual);
+        }
+
+        async function denunciarVideoAtual(id) {
+            const motivo = prompt("Motivo da denúncia?");
+            if (motivo) {
+                await supabaseClient.from('videos').update({ denunciado: true, motivo_denuncia: motivo }).eq('id', id);
+                alert("Denúncia enviada!");
+            }
+        }
+
+        function redirecionarParaCanal() {
+            supabaseClient.auth.getSession().then(({ data: { session } }) => {
+                if (session) window.location.href = `canais.html?user=${encodeURIComponent(session.user.user_metadata?.display_name)}`;
+                else window.location.href = "login.html";
+            });
+        }
+
+        function copiarTexto(id) {
+            navigator.clipboard.writeText(document.getElementById(id).value);
+            alert("Link copiado!");
+        }
+
+        function carregarRecomendados(videos) {
+            const container = document.getElementById('relatedVideosContainer');
+            container.innerHTML = videos.map(v => `
+                <div style="display: flex; gap: 8px; margin-bottom: 10px; font-size: 11px;">
+                    <a href="watch.html?v=${v.id}"><img src="${v.thumb}" style="width: 90px; border: 1px solid #CCC;"></a>
+                    <div style="display: flex; flex-direction: column;">
+                        <a href="watch.html?v=${v.id}" style="font-weight: bold; color: #0033CC; text-decoration: none;">${v.titulo}</a>
+                        <span>${v.autor}</span>
+                    </div>
+                </div>`).join('');
+        }
+    </script>
+</body>
+</html>

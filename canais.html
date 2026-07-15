@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LirpeHub - Canal</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <style>
+        .channel-header {
+            background: #F0F3F8;
+            border: 1px solid #CCD2E0;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .channel-avatar {
+            width: 80px;
+            height: 80px;
+            background: #CCC;
+            border: 2px solid #999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: #666;
+        }
+
+        .channel-info h2 {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+
+        .channel-info p {
+            margin: 0;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .owner-badge {
+            background: #FFE0B2;
+            color: #E65100;
+            border: 1px solid #FFB74D;
+            padding: 2px 6px;
+            font-size: 10px;
+            font-weight: bold;
+            border-radius: 3px;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        .main-content-layout {
+            display: flex; 
+            gap: 20px; 
+            max-width: 1000px; 
+            margin: 15px auto; 
+            padding: 0 10px; 
+            box-sizing: border-box;
+            flex-direction: row;
+        }
+
+        .video-column {
+            flex: 3; 
+            min-width: 0;
+        }
+
+        .sidebar-column {
+            flex: 1; 
+            min-width: 200px; 
+            font-size: 12px; 
+            font-family: Arial, sans-serif;
+        }
+
+        @media (max-width: 768px) {
+            .main-content-layout {
+                flex-direction: column;
+            }
+            .sidebar-column {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="logo-container">
+            <a href="index.html" class="logo" style="text-decoration: none;">
+                <span class="lirpe">Lirpe</span><span class="hub">Hub</span>
+            </a>
+            <span class="slogan">Broadcast Yourself</span>
+        </div>
+        
+        <nav class="nav-links">
+            <a href="index.html">Página Inicial</a> | 
+            <a href="#">Vídeos</a> | 
+            <a href="canais.html" class="active">Canais</a> |
+            <a href="enviar.html" style="color: #CC0000; font-weight: bold;">Enviar Vídeo</a>
+        </nav>
+    </header>
+
+    <div class="container" style="max-width: 1000px; margin: 15px auto; padding: 0 10px; box-sizing: border-box;">
+        
+        <div class="channel-header">
+            <div class="channel-avatar" id="canalAvatar">?</div>
+            <div class="channel-info">
+                <h2 id="canalNome">Carregando Canal...</h2>
+                <p id="canalSub">Carregando estatísticas...</p>
+                <div id="statusDono" style="display: none;">
+                    <span class="owner-badge">Seu Espaço (Dono)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content-layout" style="margin: 0; padding: 0;">
+            
+            <div class="video-column">
+                <h3 style="background: #EAEAEA; border: 1px solid #CCCCCC; padding: 5px; margin: 0 0 15px 0; font-size: 13px; color: #333;" id="secaoTitulo">
+                    📺 Vídeos de ...
+                </h3>
+                
+                <main class="video-grid" id="canalVideosContainer" style="margin-top: 0;">
+                    </main>
+            </div>
+
+            <aside class="sidebar-column">
+                <div style="border: 1px solid #CCD2E0; background: #F0F3F8; padding: 10px; margin-bottom: 15px;">
+                    <h4 style="margin: 0 0 8px 0; color: #0033CC; border-bottom: 1px solid #CCD2E0; padding-bottom: 3px; font-size: 12px;">
+                        📊 Detalhes do Canal
+                    </h4>
+                    <ul style="list-style: none; padding: 0; margin: 0; line-height: 1.8;">
+                        <li><strong>Inscrição:</strong> <span id="membroDesde">Calculando...</span></li>
+                        <li><strong>Vídeos Enviados:</strong> <span id="totalVideos">0</span></li>
+                    </ul>
+                </div>
+
+                <div id="painelDono" style="border: 1px solid #B4C3E2; background: #E3ECFC; padding: 10px; display: none;">
+                    <h4 style="margin: 0 0 8px 0; color: #0033CC; border-bottom: 1px solid #B4C3E2; padding-bottom: 3px; font-size: 12px;">
+                        🛠️ Painel do Criador
+                    </h4>
+                    <p style="font-size: 11px; margin-bottom: 8px;">Este menu só aparece para você.</p>
+                    <button class="btn-classic" onclick="window.location.href='enviar.html'" style="width: 100%; padding: 4px; cursor: pointer; font-size: 11px;">
+                        + Enviar Novo Vídeo
+                    </button>
+                </div>
+            </aside>
+
+        </div>
+    </div>
+
+    <footer class="main-footer">
+        <p>&copy; 2005 LirpeHub, Inc. | <a href="#">Sobre Nós</a> | <a href="#">Ajuda</a></p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer crossorigin="anonymous"></script>
+    <script src="js/config.js" defer></script>
+    
+    <script>
+        let supabaseClient = null;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Verifica se o config.js foi carregado antes de inicializar o Supabase
+            if (typeof CONFIG === 'undefined') {
+                console.error("Erro: js/config.js não encontrado.");
+                return;
+            }
+
+            if (typeof supabase !== 'undefined') {
+                supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+                await carregarCanal();
+            } else {
+                console.error("Erro ao carregar o Supabase.");
+            }
+        });
+
+        async function carregarCanal() {
+            // 1. Pegar o parâmetro do canal na URL (?user=Apelido)
+            const urlParams = new URLSearchParams(window.location.search);
+            let canalAlvo = urlParams.get('user');
+            
+            let usuarioLogado = null;
+            let displayLogado = "";
+
+            // 2. Verificar se há sessão ativa
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session && session.user) {
+                    usuarioLogado = session.user;
+                    displayLogado = usuarioLogado.user_metadata?.display_name || usuarioLogado.email.split('@')[0];
+                }
+            } catch (err) {
+                console.warn("Nenhum usuário ativo logado.", err);
+            }
+
+            // Se não especificou canal na URL, mas está logado, redireciona para o próprio canal
+            if (!canalAlvo) {
+                if (displayLogado) {
+                    window.location.href = `canais.html?user=${encodeURIComponent(displayLogado)}`;
+                    return;
+                } else {
+                    // Sem usuário logado e sem URL -> Mostra aviso
+                    document.getElementById('canalNome').innerText = "Canal não especificado";
+                    document.getElementById('canalSub').innerText = "Por favor, selecione um criador para visitar.";
+                    return;
+                }
+            }
+
+            // 3. Renderiza o nome e visual do canal
+            document.getElementById('canalNome').innerText = canalAlvo;
+            document.getElementById('secaoTitulo').innerText = `📺 Vídeos de ${canalAlvo}`;
+            document.getElementById('canalAvatar').innerText = canalAlvo.charAt(0).toUpperCase();
+
+            // É o canal do próprio usuário logado?
+            if (displayLogado && displayLogado.toLowerCase() === canalAlvo.toLowerCase()) {
+                document.getElementById('statusDono').style.display = 'block';
+                document.getElementById('painelDono').style.display = 'block';
+            }
+
+            // 4. Buscar os vídeos do canal no Supabase
+            try {
+                const { data: videos, error } = await supabaseClient
+                    .from('videos')
+                    .select('*')
+                    .eq('autor', canalAlvo);
+
+                if (error) throw error;
+
+                const container = document.getElementById('canalVideosContainer');
+                container.innerHTML = '';
+
+                if (!videos || videos.length === 0) {
+                    container.innerHTML = `<p style="font-style: italic; color: #666; padding: 10px;">Este canal ainda não enviou nenhum vídeo.</p>`;
+                    document.getElementById('totalVideos').innerText = "0";
+                } else {
+                    document.getElementById('totalVideos').innerText = videos.length;
+                    
+                    // Renderiza os cards de vídeo no canal
+                    videos.forEach(v => {
+                        const item = document.createElement('div');
+                        item.className = 'video-card';
+                        item.innerHTML = `
+                            <a href="watch.html?v=${v.id}">
+                                <img src="${v.thumb}" class="video-thumb" alt="${v.titulo}">
+                            </a>
+                            <div class="video-info">
+                                <a href="watch.html?v=${v.id}" class="video-title">${v.titulo}</a>
+                                <span class="video-views">${v.visualizacoes} views</span>
+                            </div>
+                        `;
+                        container.appendChild(item);
+                    });
+                }
+
+                // Ajuste retro da data de criação
+                document.getElementById('membroDesde').innerText = "Recente";
+                document.getElementById('canalSub').innerText = `Canal oficial de ${canalAlvo} no LirpeHub!`;
+
+            } catch (err) {
+                console.error("Erro ao carregar dados do canal:", err);
+            }
+        }
+    </script>
+</body>
+</html>

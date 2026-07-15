@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LirpeHub - Enviar Vídeo</title>
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo-container">
+            <a href="index.html" class="logo"><span class="lirpe">Lirpe</span><span class="hub">Hub</span></a>
+        </div>
+        <nav class="nav-links">
+            <a href="index.html">Página Inicial</a> | 
+            <a href="enviar.html" class="active">Enviar Vídeo</a>
+        </nav>
+    </header>
+
+    <div id="loadingSection" style="text-align: center; margin: 100px auto; max-width: 400px; font-family: Arial, sans-serif;">
+        <h3 style="color: #666;">Verificando autenticação...</h3>
+        <p style="font-size: 12px; color: #999;">Por favor, aguarde um instante.</p>
+    </div>
+
+    <div class="container" id="uploadContainer" style="display: none;">
+        <div class="video-details-box" style="max-width: 550px; margin: 30px auto;">
+            <h2>Publicar Vídeo no LirpeHub</h2>
+            <p style="font-size: 11px; color: #666; margin-bottom: 15px;">Escolha entre compartilhar um link do YouTube ou subir o seu próprio arquivo de vídeo!</p>
+            <hr>
+            
+            <div style="margin-bottom: 15px; background: #EAEAEA; padding: 8px; border: 1px solid #CCCCCC;">
+                <span style="font-weight: bold; font-size: 12px; margin-right: 10px;">Tipo de Envio:</span>
+                <label style="margin-right: 15px; font-size: 12px;">
+                    <input type="radio" name="uploadType" value="youtube" checked onclick="toggleUploadType('youtube')"> Link do YouTube
+                </label>
+                <label style="font-size: 12px;">
+                    <input type="radio" name="uploadType" value="file" onclick="toggleUploadType('file')"> Arquivo de Vídeo Local
+                </label>
+            </div>
+
+            <form id="uploadForm">
+                <label>Seu Apelido/Canal:</label><br>
+                <input type="text" id="autor" required style="width: 100%; margin-bottom: 10px; box-sizing: border-box;"><br>
+
+                <label>Título do Vídeo:</label><br>
+                <input type="text" id="titulo" required style="width: 100%; margin-bottom: 10px; box-sizing: border-box;"><br>
+
+                <div id="ytInputSection">
+                    <label>Link do Vídeo do YouTube:</label><br>
+                    <input type="url" id="ytLink" placeholder="https://www.youtube.com/watch?v=..." style="width: 100%; margin-bottom: 15px; box-sizing: border-box;"><br>
+                </div>
+
+                <div id="fileInputSection" style="display: none;">
+                    <label>Selecione o Vídeo (.mp4, .webm):</label><br>
+                    <input type="file" id="videoFile" accept="video/*" style="width: 100%; margin-bottom: 10px;"><br>
+
+                    <label>Selecione uma Capa/Thumb (.jpg, .png):</label><br>
+                    <input type="file" id="thumbFile" accept="image/*" style="width: 100%; margin-bottom: 15px;"><br>
+                </div>
+
+                <button type="submit" class="btn-classic">Publicar Vídeo!</button>
+            </form>
+            <div id="statusMessage" style="margin-top: 10px; font-weight: bold; font-size: 12px;"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer crossorigin="anonymous"></script>
+    <script src="js/config.js" defer></script>
+    
+    <script>
+        let supabaseClient = null;
+
+        // Espera o documento e os scripts externos carregarem por completo
+        window.addEventListener('DOMContentLoaded', async () => {
+            const loadingSec = document.getElementById('loadingSection');
+            const uploadCont = document.getElementById('uploadContainer');
+
+            // Verifica se o arquivo config.js foi devidamente carregado
+            if (typeof CONFIG === 'undefined') {
+                console.error("Erro: O arquivo de configurações js/config.js está ausente.");
+                loadingSec.innerHTML = `
+                    <h3 style="color: red;">Erro de Configuração</h3>
+                    <p style="font-size: 12px; color: #666;">Arquivo de configuração do sistema não encontrado.</p>
+                `;
+                return;
+            }
+
+            if (typeof supabase !== 'undefined') {
+                supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+                
+                // Verificar se o usuário está logado
+                try {
+                    const { data: { session }, error } = await supabaseClient.auth.getSession();
+
+                    if (error || !session) {
+                        // Não está logado: mostra mensagem e joga pro login
+                        loadingSec.innerHTML = `
+                            <h3 style="color: red;">Acesso Negado!</h3>
+                            <p style="font-size: 12px; color: #666;">Você precisa estar logado para enviar vídeos. Redirecionando...</p>
+                        `;
+                        setTimeout(() => {
+                            window.location.href = "login.html"; // Redireciona para o login
+                        }, 2000);
+                    } else {
+                        // Logado com sucesso!
+                        loadingSec.style.display = 'none'; // Esconde o carregamento
+                        uploadCont.style.display = 'block'; // Mostra o formulário
+
+                        // Auto-preencher o autor com o display_name cadastrado do usuário
+                        const user = session.user;
+                        if (user && user.user_metadata && user.user_metadata.display_name) {
+                            document.getElementById('autor').value = user.user_metadata.display_name;
+                        } else if (user && user.email) {
+                            // Backup caso não tenha display_name, pega o início do e-mail
+                            document.getElementById('autor').value = user.email.split('@')[0];
+                        }
+                    }
+                } catch (authErr) {
+                    console.error("Erro na validação da sessão:", authErr);
+                    window.location.href = "login.html";
+                }
+            } else {
+                loadingSec.innerHTML = `
+                    <h3 style="color: red;">Erro do Sistema</h3>
+                    <p style="font-size: 12px; color: #666;">Não foi possível carregar as dependências de login.</p>
+                `;
+            }
+        });
+
+        // Alterna os campos visíveis do formulário
+        function toggleUploadType(type) {
+            const ytSection = document.getElementById('ytInputSection');
+            const fileSection = document.getElementById('fileInputSection');
+            const ytLinkInput = document.getElementById('ytLink');
+            const videoFileInput = document.getElementById('videoFile');
+
+            if (type === 'youtube') {
+                ytSection.style.display = 'block';
+                fileSection.style.display = 'none';
+                ytLinkInput.required = true;
+                videoFileInput.required = false;
+            } else {
+                ytSection.style.display = 'none';
+                fileSection.style.display = 'block';
+                ytLinkInput.required = false;
+                videoFileInput.required = true;
+            }
+        }
+
+        // Extrai o ID do YouTube
+        function extrairID(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const status = document.getElementById('statusMessage');
+            status.innerText = "Publicando... Por favor, aguarde.";
+            status.style.color = "black";
+
+            if (!supabaseClient) {
+                status.innerText = "Erro: O banco de dados ainda não foi inicializado.";
+                status.style.color = "red";
+                return;
+            }
+
+            const autor = document.getElementById('autor').value;
+            const titulo = document.getElementById('titulo').value;
+            const uploadType = document.querySelector('input[name="uploadType"]:checked').value;
+
+            let finalEmbedUrl = "";
+            let finalThumbUrl = "";
+
+            if (uploadType === 'youtube') {
+                const link = document.getElementById('ytLink').value;
+                const videoId = extrairID(link);
+
+                if (!videoId) {
+                    status.innerText = "Erro: Link do YouTube inválido!";
+                    status.style.color = "red";
+                    return;
+                }
+                finalEmbedUrl = `https://www.youtube.com/embed/${videoId}`;
+                finalThumbUrl = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+
+            } else {
+                const videoFile = document.getElementById('videoFile').files[0];
+                const thumbFile = document.getElementById('thumbFile').files[0];
+
+                if (!videoFile) {
+                    status.innerText = "Por favor, selecione um arquivo de vídeo.";
+                    status.style.color = "red";
+                    return;
+                }
+
+                try {
+                    status.innerText = "Enviando vídeo para o LirpeHub (Supabase)...";
+                    
+                    const videoFileName = `${Date.now()}_video_${videoFile.name.replace(/\s+/g, '_')}`;
+                    const { data: videoData, error: videoError } = await supabaseClient.storage
+                        .from('lirpe-files')
+                        .upload(videoFileName, videoFile);
+
+                    if (videoError) throw videoError;
+
+                    const { data: videoPublicUrl } = supabaseClient.storage
+                        .from('lirpe-files')
+                        .getPublicUrl(videoFileName);
+
+                    finalEmbedUrl = videoPublicUrl.publicUrl;
+
+                    if (thumbFile) {
+                        status.innerText = "Enviando imagem de capa...";
+                        const thumbFileName = `${Date.now()}_thumb_${thumbFile.name.replace(/\s+/g, '_')}`;
+                        const { data: thumbData, error: thumbError } = await supabaseClient.storage
+                            .from('lirpe-files')
+                            .upload(thumbFileName, thumbFile);
+
+                        if (thumbError) throw thumbError;
+
+                        const { data: thumbPublicUrl } = supabaseClient.storage
+                            .from('lirpe-files')
+                            .getPublicUrl(thumbFileName);
+
+                        finalThumbUrl = thumbPublicUrl.publicUrl;
+                    } else {
+                        finalThumbUrl = "https://placehold.co/300x180?text=Video+LirpeHub";
+                    }
+
+                } catch (err) {
+                    status.innerText = "Erro no upload dos arquivos: " + err.message;
+                    status.style.color = "red";
+                    return;
+                }
+            }
+
+            const novoVideo = {
+                titulo: titulo,
+                autor: autor,
+                visualizacoes: "0",
+                data: "Recém adicionado",
+                thumb: finalThumbUrl,
+                embedUrl: finalEmbedUrl
+            };
+
+            const { data, error } = await supabaseClient
+                .from('videos')
+                .insert([novoVideo]);
+
+            if (error) {
+                status.innerText = "Erro ao registrar no banco: " + error.message;
+                status.style.color = "red";
+            } else {
+                status.innerText = "Vídeo publicado com sucesso! Redirecionando...";
+                status.style.color = "green";
+                setTimeout(() => {
+                    window.location.href = "index.html";
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+</html>
