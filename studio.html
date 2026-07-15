@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Lirpe Studio - Seus Vídeos</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <style>
+        .studio-container { max-width: 900px; margin: 20px auto; font-family: Arial, sans-serif; }
+        .studio-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .studio-table th, .studio-table td { border: 1px solid #CCC; padding: 10px; text-align: left; }
+        .studio-table th { background: #F0F0F0; }
+        .btn-del { color: red; cursor: pointer; font-weight: bold; }
+        .status-alert { color: #CC0000; font-weight: bold; font-size: 11px; }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="logo-container">
+            <a href="index.html" class="logo"><span class="lirpe">Lirpe</span><span class="hub">Hub</span></a>
+            <span class="slogan">Studio</span>
+        </div>
+        <nav class="nav-links">
+            <a href="index.html">Início</a> | 
+            <a href="studio.html" class="active">Studio</a>
+            <span id="authControl"></span> <!-- Local do controle de login/sair -->
+        </nav>
+    </header>
+
+    <div class="studio-container">
+        <h2>Painel do Criador</h2>
+        <table class="studio-table">
+            <thead>
+                <tr>
+                    <th>Miniatura</th>
+                    <th>Título</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="listaMeusVideos">
+                <tr><td colspan="4">Carregando seus vídeos...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script>
+        // Lógica de autenticação e redirecionamento de menu no Studio
+        window.addEventListener('DOMContentLoaded', async () => {
+            const authControl = document.getElementById('authControl');
+            if (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY) {
+                window.supabaseClient = window.supabaseClient || supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+                const { data: { session } } = await window.supabaseClient.auth.getSession();
+                
+                if (session) {
+                    authControl.innerHTML = ' | <a href="logout.html" style="color: #CC0000; font-weight: bold;">Sair</a>';
+                } else {
+                    // Se não estiver logado, nem deveria estar aqui, redireciona
+                    window.location.href = "login.html";
+                }
+            }
+        });
+    </script>
+    <script src="js/studio.js"></script>
+</body>
+</html>

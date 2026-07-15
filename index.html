@@ -100,7 +100,7 @@
     <script src="js/main.js"></script>
 
     <script>
-        // Controle de autenticação
+        // Controle de autenticação com link para Studio
         window.addEventListener('DOMContentLoaded', async () => {
             const authControl = document.getElementById('authControl');
             if (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY) {
@@ -108,7 +108,7 @@
                 const { data: { session } } = await window.supabaseClient.auth.getSession();
                 
                 if (session) {
-                    authControl.innerHTML = ' | <a href="logout.html" style="color: #CC0000; font-weight: bold;">Sair</a>';
+                    authControl.innerHTML = ' | <a href="studio.html" style="color: #008000; font-weight: bold;">Studio</a> | <a href="logout.html" style="color: #CC0000; font-weight: bold;">Sair</a>';
                 } else {
                     authControl.innerHTML = ' | <a href="login.html" style="color: #0033CC; font-weight: bold;">Entrar</a>';
                 }
@@ -136,7 +136,6 @@
         function buscarVideos(query = '') {
             const videoContainer = document.getElementById('videoContainer');
             videoContainer.innerHTML = `<p style="font-size:12px;color:#666;">Buscando vídeos: <strong>${query}</strong>...</p>`;
-            // Aqui você pode integrar com Supabase ou API futuramente
         }
 
         // Tags
