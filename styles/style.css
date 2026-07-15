@@ -1,0 +1,364 @@
+/* ==========================================================================
+   LIRPEHUB 2005 - ESTILO RETRO / OLDSCHOOL
+   ========================================================================== */
+
+/* Configurações Globais do Sistema */
+body {
+    background-color: #FFFFFF;
+    color: #333333;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    color: #0033CC;
+    text-decoration: underline;
+}
+
+a:hover {
+    color: #CC0000;
+}
+
+/* Container de Alinhamento Centralizado */
+.container {
+    max-width: 960px;
+    margin: 15px auto;
+    padding: 0 10px;
+}
+
+/* ==========================================================================
+   CABEÇALHO CLASSICO (Header)
+   ========================================================================== */
+.main-header {
+    background-color: #EEEEEE;
+    border-bottom: 1px solid #CCCCCC;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    text-decoration: none;
+    letter-spacing: -1px;
+}
+
+/* Logo Vermelho e Preto clássico */
+.logo .lirpe {
+    color: #000000;
+}
+
+.logo .hub {
+    background-color: #CC0000;
+    color: #FFFFFF;
+    padding: 2px 6px;
+    margin-left: 2px;
+    border-radius: 3px; /* Um leve toque para parecer o logo oficial */
+}
+
+.slogan {
+    font-size: 11px;
+    color: #666666;
+    font-style: italic;
+    margin-bottom: 2px;
+}
+
+.nav-links {
+    font-size: 12px;
+    font-weight: bold;
+    color: #CCCCCC;
+}
+
+.nav-links a {
+    color: #0033CC;
+    text-decoration: none;
+    padding: 0 5px;
+}
+
+.nav-links a.active {
+    color: #000000;
+    text-decoration: none;
+    cursor: default;
+}
+
+/* ==========================================================================
+   VISUAL DA PÁGINA INICIAL (index.html)
+   ========================================================================== */
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    max-width: 960px;
+    margin: 30px auto;
+    padding: 0 15px;
+}
+
+.video-card {
+    border: 1px solid #EAEAEA;
+    padding: 8px;
+    background-color: #FAFAFA;
+}
+
+.video-card:hover {
+    border-color: #CCCCCC;
+    background-color: #F1F1F1;
+}
+
+.video-card .thumb {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border: 1px solid #CCCCCC;
+}
+
+.video-card h3 {
+    font-size: 13px;
+    margin: 8px 0 4px 0;
+    line-height: 1.2;
+}
+
+.video-card h3 a {
+    color: #0033CC;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.video-card h3 a:hover {
+    text-decoration: underline;
+}
+
+.video-card p {
+    margin: 2px 0;
+    color: #666666;
+    font-size: 11px;
+}
+
+/* ==========================================================================
+   VISUAL DA PÁGINA DE REPRODUÇÃO (watch.html)
+   ========================================================================== */
+.watch-container {
+    display: flex;
+    gap: 20px;
+}
+
+/* Coluna da Esquerda (Vídeo e Info) */
+.main-video-section {
+    flex: 2;
+    min-width: 0; /* Impede o flex de quebrar layout */
+}
+
+/* Caixa do Player (Cinza e Quadrada) */
+.video-player-box {
+    background-color: #000000;
+    border: 1px solid #CCCCCC;
+    position: relative;
+    padding-bottom: 56.25%; /* Mantém proporção 16:9 */
+    height: 0;
+    margin-bottom: 12px;
+}
+
+.video-player-box iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Detalhes do Vídeo */
+.video-details-box {
+    border: 1px solid #D3D3D3;
+    background-color: #F5F5F5;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.video-details-box h1 {
+    font-size: 16px;
+    margin: 0 0 10px 0;
+    color: #000000;
+    font-weight: bold;
+}
+
+.video-meta-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    border-bottom: 1px dashed #CCCCCC;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+}
+
+.user-link {
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.views-count {
+    font-weight: bold;
+    font-size: 14px;
+    color: #CC0000;
+}
+
+.rating-box {
+    font-size: 11px;
+    color: #555555;
+}
+
+.rating-box .stars {
+    color: #FFCC00;
+    font-size: 14px;
+    margin-left: 5px;
+}
+
+/* Seção de Comentários */
+.comments-section {
+    border-top: 2px solid #EEEEEE;
+    padding-top: 15px;
+}
+
+.comments-section h3 {
+    font-size: 14px;
+    margin: 0 0 10px 0;
+}
+
+.comment-box textarea {
+    width: 98%;
+    height: 60px;
+    border: 1px solid #CCCCCC;
+    font-family: Arial, sans-serif;
+    padding: 5px;
+    margin-bottom: 6px;
+    resize: none;
+}
+
+/* Botões Clássicos do Estilo Windows XP */
+.btn-classic {
+    background: #EFEFEF;
+    border: 1px solid #999999;
+    padding: 4px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-classic:hover {
+    background: #E2E2E2;
+    border-color: #666666;
+}
+
+.comments-list {
+    margin-top: 15px;
+}
+
+.classic-comment {
+    border-bottom: 1px solid #F0F0F0;
+    padding: 8px 0;
+}
+
+.comment-author {
+    font-weight: bold;
+    color: #0033CC;
+    font-size: 11px;
+}
+
+.classic-comment p {
+    margin: 3px 0 0 0;
+    font-size: 12px;
+}
+
+/* ==========================================================================
+   COLUNA DA DIREITA (Recomendados / Lateral)
+   ========================================================================== */
+.sidebar-section {
+    flex: 1;
+    max-width: 320px;
+}
+
+.sidebar-title {
+    font-size: 12px;
+    background-color: #EAEAEA;
+    border: 1px solid #CCCCCC;
+    margin: 0 0 10px 0;
+    padding: 4px 8px;
+    color: #333333;
+}
+
+.related-videos {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.related-card {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid #F5F5F5;
+    padding-bottom: 8px;
+}
+
+.related-thumb {
+    width: 90px;
+    height: 60px;
+    object-fit: cover;
+    border: 1px solid #CCCCCC;
+}
+
+.related-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.related-title {
+    font-size: 11px;
+    font-weight: bold;
+    text-decoration: none;
+    color: #0033CC;
+    line-height: 1.2;
+}
+
+.related-title:hover {
+    text-decoration: underline;
+}
+
+.related-author,
+.related-views {
+    font-size: 10px;
+    color: #666666;
+}
+
+.news-ticker {
+    background-color: #FFF9D7;
+    border-top: 1px solid #E2C822;
+    border-bottom: 1px solid #E2C822;
+    padding: 6px 10px;
+    overflow: hidden;
+    white-space: nowrap; /* Impede que o texto quebre em várias linhas */
+    box-sizing: border-box;
+    font-size: 11px;
+    margin-bottom: 15px;
+}
+
+.ticker-content {
+    display: inline-block;
+    padding-left: 100%; /* Faz o texto começar fora da tela à direita */
+    animation: ticker 25s linear infinite; /* Cria o movimento contínuo */
+    color: #555555;
+}
+
+/* Animação que faz o texto correr da direita para a esquerda */
+@keyframes ticker {
+    0% { transform: translate3d(0, 0, 0); }
+    100% { transform: translate3d(-100%, 0, 0); }
+}
