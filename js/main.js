@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tagEl.classList.add('active-tag');
             
             const tagSelecionada = tagEl.getAttribute('data-tag');
-            document.getElementById('secaoTituloVideo').innerText = ` Vídeos Marcados com: #${tagSelecionada}`;
+            document.getElementById('secaoTituloVideo').innerText = ` Vídeos Marcados com: #${tagSelecionada}`;
             document.getElementById('limparFiltro').style.display = 'inline';
 
             await filtrarVideosPorTag(tagSelecionada);
