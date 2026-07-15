@@ -2,85 +2,25 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="google-site-verification" content="nQqVttWHqwbiUwB7IXhlREa_PWGulHkZfptQUQ9Otzs" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LirpeHub - Broadcast Yourself</title>
     <link rel="stylesheet" href="styles/style.css">
     <style>
-        /* CSS Adicional para Responsividade (Mobile e PC) */
-        .main-content-layout {
-            display: flex; 
-            gap: 20px; 
-            max-width: 1000px; 
-            margin: 15px auto; 
-            padding: 0 10px; 
-            box-sizing: border-box;
-            flex-direction: row;
-        }
-
+        .main-content-layout { display: flex; gap: 20px; max-width: 1000px; margin: 15px auto; padding: 0 10px; box-sizing: border-box; flex-direction: row; }
         .video-column { flex: 3; min-width: 0; }
         .sidebar-column { flex: 1; min-width: 200px; font-size: 12px; font-family: Arial, sans-serif; }
-
-        /* Grade de Vídeos */
-        .video-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 15px;
-            width: 100%;
-        }
-
-        .video-card {
-            border: 1px solid #ccc;
-            padding: 5px;
-            background: #fff;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .video-card img {
-            width: 100%;
-            height: 120px;
-            object-fit: cover;
-        }
-
-        .video-card h3 {
-            font-size: 13px;
-            margin: 5px 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
+        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; width: 100%; }
+        .video-card { border: 1px solid #ccc; padding: 5px; background: #fff; display: flex; flex-direction: column; }
+        .video-card img { width: 100%; height: 120px; object-fit: cover; }
+        .video-card h3 { font-size: 13px; margin: 5px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .video-card p { font-size: 11px; color: #666; margin: 0; }
-
-        /* Ajustes de Busca */
-        .search-bar-2005 input {
-            width: 250px; 
-            padding: 3px; 
-            font-size: 12px; 
-            border: 1px solid #7F9DB9;
-            box-sizing: border-box;
-        }
-
-        /* Tags Estilo Retro - Tamanho Padronizado */
-        .tag-link {
-            color: #0033CC;
-            text-decoration: underline;
-            cursor: pointer;
-            margin-right: 8px;
-            display: inline-block;
-            padding: 1px 4px;
-            font-size: 12px; 
-        }
-
+        .search-bar-2005 input { width: 250px; padding: 3px; font-size: 12px; border: 1px solid #7F9DB9; box-sizing: border-box; }
+        .tag-link { color: #0033CC; text-decoration: underline; cursor: pointer; margin-right: 8px; display: inline-block; padding: 1px 4px; font-size: 12px; }
         .tag-link:hover { background-color: #E6E6E6; text-decoration: none; }
         .tag-link.active-tag { background-color: #FFCC00; color: #000; text-decoration: none; font-weight: bold; border: 1px dashed #333; }
-
-        @media (max-width: 768px) {
-            .main-content-layout { flex-direction: column; }
-            .search-bar-2005 input { width: 70%; }
-            .sidebar-column { width: 100%; box-sizing: border-box; }
-        }
+        @media (max-width: 768px) { .main-content-layout { flex-direction: column; } .search-bar-2005 input { width: 70%; } .sidebar-column { width: 100%; box-sizing: border-box; } }
     </style>
 </head>
 <body>
@@ -118,24 +58,17 @@
                 <span id="secaoTituloVideo">📺 Vídeos Sendo Assistidos Agora</span>
                 <a href="javascript:void(0);" id="limparFiltro" style="font-size: 11px; color: #CC0000; display: none; text-decoration: none;">[Ver Todos]</a>
             </h3>
-            
             <main class="video-grid" id="videoContainer"></main>
         </div>
 
         <aside class="sidebar-column">
             <div style="border: 1px solid #CCD2E0; background: #F0F3F8; padding: 10px; margin-bottom: 15px;">
-                <h4 style="margin: 0 0 8px 0; color: #0033CC; border-bottom: 1px solid #CCD2E0; padding-bottom: 3px; font-size: 12px;">
-                    ⭐ Lirpeiros Recentes
-                </h4>
-                <ul id="dynamicAuthors" style="list-style: none; padding: 0; margin: 0; line-height: 1.6;">
-                    <li style="color: #666; font-style: italic;">Carregando usuários...</li>
-                </ul>
+                <h4 style="margin: 0 0 8px 0; color: #0033CC; border-bottom: 1px solid #CCD2E0; padding-bottom: 3px; font-size: 12px;">⭐ Lirpeiros Recentes</h4>
+                <ul id="dynamicAuthors" style="list-style: none; padding: 0; margin: 0; line-height: 1.6;"><li style="color: #666; font-style: italic;">Carregando usuários...</li></ul>
             </div>
 
             <div style="border: 1px solid #CCCCCC; background: #FAFAFA; padding: 10px;">
-                <h4 style="margin: 0 0 8px 0; color: #555; border-bottom: 1px solid #CCCCCC; padding-bottom: 3px; font-size: 12px;">
-                    🏷️ Tags Quentes de 2005
-                </h4>
+                <h4 style="margin: 0 0 8px 0; color: #555; border-bottom: 1px solid #CCCCCC; padding-bottom: 3px; font-size: 12px;">🏷️ Tags Quentes de 2005</h4>
                 <div style="line-height: 1.8; text-align: justify;" id="tagCloud">
                     <span class="tag-link" data-tag="AMV">AMV</span>
                     <span class="tag-link" data-tag="tutorial">tutorial</span>
@@ -149,7 +82,7 @@
     </div>
 
     <footer>
-        <p>&copy; 2005 LirpeHub, Inc. | <a href="#">Sobre Nós</a> | <a href="#">Ajuda</a></p>
+        <p>&copy; 2005 LirpeHub, Inc. | <a href="sobre-nos.html">Sobre Nós</a> | <a href="ajuda.html">Ajuda</a></p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
@@ -161,15 +94,31 @@
             if (typeof CONFIG === 'undefined') { window.location.href = "login.html"; return; }
             if (typeof supabase !== 'undefined') {
                 const tempClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-                try {
-                    const { data: { session } } = await tempClient.auth.getSession();
-                    if (session && session.user) {
-                        const display = session.user.user_metadata?.display_name || session.user.email.split('@')[0];
-                        window.location.href = `canais.html?user=${encodeURIComponent(display)}`;
-                    } else { window.location.href = "login.html"; }
-                } catch (err) { window.location.href = "login.html"; }
-            } else { window.location.href = "login.html"; }
+                const { data: { session } } = await tempClient.auth.getSession();
+                if (session) window.location.href = `canais.html?user=${encodeURIComponent(session.user.user_metadata?.display_name || session.user.email.split('@')[0])}`;
+                else window.location.href = "login.html";
+            }
         }
+
+        document.querySelectorAll('.tag-link').forEach(tag => {
+            tag.addEventListener('click', function() {
+                document.querySelectorAll('.tag-link').forEach(t => t.classList.remove('active-tag'));
+                this.classList.add('active-tag');
+                const tagValue = this.getAttribute('data-tag');
+                document.getElementById('searchInput').value = tagValue;
+                if(typeof buscarVideos === 'function') buscarVideos(tagValue);
+                document.getElementById('secaoTituloVideo').innerText = "📺 Vídeos com a tag: " + tagValue;
+                document.getElementById('limparFiltro').style.display = 'inline';
+            });
+        });
+
+        document.getElementById('limparFiltro').addEventListener('click', function() {
+            document.getElementById('searchInput').value = '';
+            document.querySelectorAll('.tag-link').forEach(t => t.classList.remove('active-tag'));
+            this.style.display = 'none';
+            document.getElementById('secaoTituloVideo').innerText = "📺 Vídeos Sendo Assistidos Agora";
+            if(typeof buscarVideos === 'function') buscarVideos('');
+        });
     </script>
 </body>
 </html>

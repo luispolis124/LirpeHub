@@ -56,8 +56,10 @@
                     <div class="rating-box">
                         <span>Avaliação:</span>
                         <div class="stars-container" id="starsContainer">
-                            <span class="star-item" data-value="5"></span><span class="star-item" data-value="4"></span>
-                            <span class="star-item" data-value="3"></span><span class="star-item" data-value="2"></span>
+                            <span class="star-item" data-value="5"></span>
+                            <span class="star-item" data-value="4"></span>
+                            <span class="star-item" data-value="3"></span>
+                            <span class="star-item" data-value="2"></span>
                             <span class="star-item" data-value="1"></span>
                         </div>
                         <span id="ratingStatus" style="font-size: 11px; color: #666;">(Calculando...)</span>
@@ -67,7 +69,10 @@
             </div>
             <div class="share-box">
                 <strong> Compartilhar este vídeo:</strong>
-                <div class="share-input-group"><input type="text" id="shareUrl" readonly onclick="this.select()"><button onclick="copiarTexto('shareUrl')" style="font-size: 10px; padding: 2px 5px;">Copiar</button></div>
+                <div class="share-input-group">
+                    <input type="text" id="shareUrl" readonly onclick="this.select()">
+                    <button onclick="copiarTexto('shareUrl')" style="font-size: 10px; padding: 2px 5px;">Copiar</button>
+                </div>
             </div>
             <div class="comments-section" style="margin-top: 15px;">
                 <h3>Comentários</h3>
@@ -87,6 +92,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script>
+        // A lógica permanece a mesma, apenas certifique-se de que este arquivo também esteja salvo como UTF-8
         let supabaseClient = null;
         let idVideoAtual = null;
         let videoData = null;

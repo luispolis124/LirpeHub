@@ -21,8 +21,8 @@
         <h3 style="color: #666;">Verificando autenticação...</h3>
     </div>
 
-    <div class="container" id="uploadContainer" style="display: none;">
-        <div class="video-details-box" style="max-width: 550px; margin: 30px auto;">
+    <div class="container" id="uploadContainer" style="display: none; max-width: 550px; margin: 30px auto;">
+        <div class="video-details-box">
             <h2>Publicar Vídeo no LirpeHub</h2>
             <hr>
             
@@ -33,8 +33,7 @@
                 <label>Título do Vídeo:</label><br>
                 <input type="text" id="titulo" required style="width: 100%; margin-bottom: 10px; box-sizing: border-box;"><br>
 
-                <!-- NOVO CAMPO DE DESCRIÇÃO -->
-                <label>Descrição do Canal/Vídeo:</label><br>
+                <label>Descrição do Vídeo:</label><br>
                 <textarea id="videoDescricao" style="width: 100%; height: 80px; margin-bottom: 10px; box-sizing: border-box; resize: vertical;"></textarea><br>
 
                 <div style="margin-bottom: 15px; background: #EAEAEA; padding: 8px; border: 1px solid #CCCCCC;">
@@ -48,7 +47,7 @@
 
                 <div id="ytInputSection">
                     <label>Link do Vídeo do YouTube:</label><br>
-                    <input type="url" id="ytLink" placeholder="https://www.youtube.com/watch?v=..." style="width: 100%; margin-bottom: 15px; box-sizing: border-box;"><br>
+                    <input type="url" id="ytLink" placeholder="Ex: https://www.youtube.com/watch?v=dQw4w9WgXcQ" style="width: 100%; margin-bottom: 15px; box-sizing: border-box;"><br>
                 </div>
 
                 <div id="fileInputSection" style="display: none;">
@@ -93,7 +92,7 @@
 
             const autor = document.getElementById('autor').value;
             const titulo = document.getElementById('titulo').value;
-            const descricao = document.getElementById('videoDescricao').value; // Pegando a descrição
+            const descricao = document.getElementById('videoDescricao').value;
             const uploadType = document.querySelector('input[name="uploadType"]:checked').value;
 
             let finalEmbedUrl = "";
@@ -101,29 +100,26 @@
 
             if (uploadType === 'youtube') {
                 const link = document.getElementById('ytLink').value;
-                const id = link.split('v=')[1]?.substring(0, 11);
+                // Regex melhorada para pegar ID de qualquer link do YT
+                const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+                const match = link.match(regExp);
+                const id = (match && match[2].length === 11) ? match[2] : null;
+
+                if(!id) { status.innerText = "Erro: Link do YouTube inválido."; return; }
+                
                 finalEmbedUrl = `https://www.youtube.com/embed/${id}`;
                 finalThumbUrl = `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
             } else {
-                // Lógica de upload de arquivo mantida aqui...
-                finalEmbedUrl = "placeholder_url"; 
+                finalEmbedUrl = "local_file_placeholder"; 
                 finalThumbUrl = "https://placehold.co/300x180";
             }
 
-            // O OBJETO SENDO SALVO NO SUPABASE
-            const novoVideo = {
-                titulo: titulo,
-                autor: autor,
-                descricao: descricao, // <--- AQUI A DESCRIÇÃO SENDO ENVIADA
-                visualizacoes: "0",
-                thumb: finalThumbUrl,
-                embedUrl: finalEmbedUrl
-            };
+            const novoVideo = { titulo, autor, descricao, visualizacoes: "0", thumb: finalThumbUrl, embedUrl: finalEmbedUrl };
 
             const { error } = await supabaseClient.from('videos').insert([novoVideo]);
 
             if (error) {
-                status.innerText = "Erro: " + error.message;
+                status.innerText = "Erro ao publicar: " + error.message;
             } else {
                 status.innerText = "Publicado com sucesso!";
                 setTimeout(() => window.location.href = "index.html", 2000);
