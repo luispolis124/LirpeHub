@@ -87,6 +87,10 @@
         document.getElementById('uploadForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const status = document.getElementById('statusMessage');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            // Trava o botão para evitar clique duplo
+            submitBtn.disabled = true;
             status.innerText = "Publicando...";
 
             const autor = document.getElementById('autor').value;
@@ -103,7 +107,11 @@
                 const match = link.match(regExp);
                 const id = (match && match[2].length === 11) ? match[2] : null;
 
-                if(!id) { status.innerText = "Erro: Link do YouTube inválido."; return; }
+                if(!id) { 
+                    status.innerText = "Erro: Link do YouTube inválido."; 
+                    submitBtn.disabled = false;
+                    return; 
+                }
                 
                 finalEmbedUrl = `https://www.youtube.com/embed/${id}`;
                 finalThumbUrl = `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
@@ -113,21 +121,31 @@
             }
 
             const novoVideo = { 
-                titulo: titulo || "Sem título", 
-                autor: autor || "LirpeFelipovi", 
-                descricao: descricao || "", 
+                titulo: titulo, 
+                autor: autor, 
+                descricao: descricao, 
                 visualizacoes: "0", 
-                thumb: finalThumbUrl || "", 
-                embedurl: finalEmbedUrl || "" 
+                thumb: finalThumbUrl, 
+                embedurl: finalEmbedUrl,
+                soma_rating: 0,
+                total_rating: 0
             };
 
             const { error } = await supabaseClient.from('videos').insert([novoVideo]);
 
             if (error) {
                 status.innerText = "Erro ao publicar: " + error.message;
+                submitBtn.disabled = false;
             } else {
-                status.innerText = "Publicado com sucesso!";
-                setTimeout(() => window.location.href = "index.html", 2000);
+                status.style.color = "green";
+                status.innerText = "Vídeo publicado com sucesso! Pode enviar outro.";
+                
+                // Limpa o formulário e libera para nova postagem
+                document.getElementById('uploadForm').reset();
+                submitBtn.disabled = false;
+                
+                // Remove o aviso de sucesso após 3 segundos
+                setTimeout(() => { status.innerText = ""; status.style.color = ""; }, 3000);
             }
         });
     </script>
