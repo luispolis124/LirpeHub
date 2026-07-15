@@ -1,5 +1,4 @@
-// js/main.js - L√≥gica principal do LirpeHub
-// O objeto CONFIG √© acessado globalmente a partir do js/config.js
+// js/main.js - LÛgica principal do LirpeHub
 
 let supabaseClient = null;
 
@@ -7,23 +6,23 @@ let supabaseClient = null;
 if (typeof CONFIG !== 'undefined') {
     supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 } else {
-    console.error("Erro: js/config.js n√£o carregado. O Supabase n√£o ser√° inicializado.");
+    console.error("Erro: js/config.js n„o carregado. O Supabase n„o ser· inicializado.");
 }
 
-// V√≠deo padr√£o de backup
+// VÌdeo padr„o de backup
 const videosPadrao = [
     {
         id: "1",
-        titulo: "Me at the zoo - O primeiro v√≠deo do YouTube!",
+        titulo: "Me at the zoo - O primeiro vÌdeo do YouTube!",
         autor: "jawed",
         visualizacoes: "399,580,346",
-        data: "H√° 21 anos",
+        data: "H· 21 anos",
         thumb: "https://img.youtube.com/vi/jNQXAC9IVRw/mqdefault.jpg", 
         embedurl: "https://www.youtube.com/embed/jNQXAC9IVRw"
     }
 ];
 
-// 1. FUN√á√ÉO AUXILIAR: Desenha os cards de v√≠deo na tela
+// 1. FUN«√O AUXILIAR: Desenha os cards de vÌdeo na tela
 function renderizarVideos(videos) {
     const container = document.getElementById('videoContainer');
     if (!container) return;
@@ -31,7 +30,7 @@ function renderizarVideos(videos) {
     container.innerHTML = '';
 
     if (!videos || videos.length === 0) {
-        container.innerHTML = '<p style="font-style: italic; color: #666; padding: 10px;">Nenhum v√≠deo encontrado.</p>';
+        container.innerHTML = '<p style="font-style: italic; color: #666; padding: 10px;">Nenhum vÌdeo encontrado.</p>';
         return;
     }
     
@@ -44,18 +43,18 @@ function renderizarVideos(videos) {
                 <h3><a href="watch.html?v=${video.id}">${video.titulo}</a></h3>
             </a>
             <p>Por: <strong><a href="canais.html?user=${encodeURIComponent(video.autor)}" style="color: #0033CC; text-decoration: none;">${video.autor}</a></strong></p>
-            <p>${video.visualizacoes} views ‚Ä¢ ${video.data}</p>
+            <p>${video.visualizacoes} views ï ${video.data}</p>
         `;
         container.appendChild(card);
     });
 }
 
-// 2. FUN√á√ÉO: Carrega todos os v√≠deos da p√°gina inicial
+// 2. FUN«√O: Carrega todos os vÌdeos da p·gina inicial
 async function carregarTodosOsVideos() {
     const container = document.getElementById('videoContainer');
     if (!container || !supabaseClient) return;
     
-    container.innerHTML = 'Carregando v√≠deos...';
+    container.innerHTML = 'Carregando vÌdeos...';
 
     try {
         let { data, error } = await supabaseClient
@@ -69,12 +68,12 @@ async function carregarTodosOsVideos() {
             renderizarVideos(data);
         }
     } catch (e) {
-        console.warn("Erro ao carregar v√≠deos:", e);
+        console.warn("Erro ao carregar vÌdeos:", e);
         renderizarVideos(videosPadrao);
     }
 }
 
-// 3. FUN√á√ÉO: Filtra os v√≠deos no Supabase
+// 3. FUN«√O: Filtra os vÌdeos no Supabase
 async function filtrarVideosPorTag(tag) {
     const container = document.getElementById('videoContainer');
     if (!container || !supabaseClient) return;
@@ -91,11 +90,43 @@ async function filtrarVideosPorTag(tag) {
         if (error) throw error;
         renderizarVideos(data);
     } catch (e) {
-        container.innerHTML = `<span style="color: red;">Erro ao filtrar v√≠deos.</span>`;
+        container.innerHTML = `<span style="color: red;">Erro ao filtrar vÌdeos.</span>`;
     }
 }
 
-// 4. FUN√á√ÉO: Carrega criadores recentes
+// 4. FUN«√O: Busca vÌdeos por tÌtulo ou autor
+async function buscarVideos() {
+    const searchInput = document.getElementById('searchInput');
+    if (!searchInput) return;
+    
+    const termo = searchInput.value.trim();
+    const container = document.getElementById('videoContainer');
+    
+    if (!termo) {
+        carregarTodosOsVideos();
+        return;
+    }
+
+    container.innerHTML = `Pesquisando por: "${termo}"...`;
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('videos')
+            .select('*')
+            .or(`titulo.ilike.%${termo}%,autor.ilike.%${termo}%`)
+            .order('id', { ascending: false });
+
+        if (error) throw error;
+        
+        document.getElementById('secaoTituloVideo').innerText = ` Resultados para: "${termo}"`;
+        renderizarVideos(data);
+    } catch (e) {
+        console.error("Erro na busca:", e);
+        container.innerHTML = `<p>Erro ao realizar a busca.</p>`;
+    }
+}
+
+// 5. FUN«√O: Carrega criadores recentes
 async function carregarUsuariosRecentes() {
     const authorsList = document.getElementById('dynamicAuthors');
     if (!authorsList || !supabaseClient) return;
@@ -110,7 +141,7 @@ async function carregarUsuariosRecentes() {
         if (data) {
             const autoresUnicos = [...new Set(data.map(item => item.autor))].slice(0, 5);
             authorsList.innerHTML = autoresUnicos.map(autor => 
-                `<li>‚Ä¢ <a href="canais.html?user=${encodeURIComponent(autor)}" style="color: #0033CC; font-weight: bold; text-decoration: none;">${autor}</a></li>`
+                `<li>ï <a href="canais.html?user=${encodeURIComponent(autor)}" style="color: #0033CC; font-weight: bold; text-decoration: none;">${autor}</a></li>`
             ).join('');
         }
     } catch (e) {
@@ -119,7 +150,7 @@ async function carregarUsuariosRecentes() {
 }
 
 // ==========================================
-// CONFIGURA√á√ÉO DOS EVENTOS
+// CONFIGURA«√O DOS EVENTOS
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -130,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tagEl.classList.add('active-tag');
             
             const tagSelecionada = tagEl.getAttribute('data-tag');
-            document.getElementById('secaoTituloVideo').innerText = `üì∫ V√≠deos Marcados com: #${tagSelecionada}`;
+            document.getElementById('secaoTituloVideo').innerText = ` VÌdeos Marcados com: #${tagSelecionada}`;
             document.getElementById('limparFiltro').style.display = 'inline';
 
             await filtrarVideosPorTag(tagSelecionada);
@@ -140,12 +171,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Evento limpar filtro
     document.getElementById('limparFiltro')?.addEventListener('click', async () => {
         document.querySelectorAll('.tag-link').forEach(t => t.classList.remove('active-tag'));
-        document.getElementById('secaoTituloVideo').innerText = "üì∫ V√≠deos Sendo Assistidos Agora";
+        document.getElementById('secaoTituloVideo').innerText = " VÌdeos Sendo Assistidos Agora";
         document.getElementById('limparFiltro').style.display = 'none';
         await carregarTodosOsVideos(); 
     });
 
-    // In√≠cio
+    // Evento busca (Enter)
+    document.getElementById('searchInput')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') buscarVideos();
+    });
+
+    // InÌcio
     if (supabaseClient) {
         carregarTodosOsVideos();
         carregarUsuariosRecentes();
