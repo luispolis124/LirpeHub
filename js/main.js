@@ -3,10 +3,10 @@
 let supabaseClient = null;
 
 // Inicializa o cliente Supabase
-if (typeof CONFIG !== 'undefined') {
+if (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY) {
     supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 } else {
-    console.error("Erro: js/config.js não carregado.");
+    console.error("Erro: js/config.js não carregado ou inválido.");
 }
 
 // Vídeo padrão de backup (Caso o banco falhe ou esteja vazio)
@@ -40,22 +40,23 @@ function renderizarVideos(videos) {
     videosSeguros.forEach(video => {
         const card = document.createElement('div');
         card.className = 'video-card';
-        // Usa a data do banco se existir, senão usa a string 'data' do objeto
         const dataExibicao = video.created_at ? new Date(video.created_at).toLocaleDateString() : (video.data || "Recente");
         
         card.innerHTML = `
             <a href="watch.html?v=${video.id}">
-                <img src="${video.thumb}" alt="${video.titulo}" class="thumb" onerror="this.src='https://placehold.co/300x180?text=LirpeHub';">
+                <img src="${video.thumb}" alt="${video.titulo}" class="thumb" 
+                     onerror="this.src='https://placehold.co/300x180?text=LirpeHub';">
                 <h3><a href="watch.html?v=${video.id}">${video.titulo}</a></h3>
             </a>
-            <p>Por: <strong><a href="canais.html?user=${encodeURIComponent(video.autor)}" style="color: #0033CC; text-decoration: none;">${video.autor}</a></strong></p>
+            <p>Por: <strong><a href="canais.html?user=${encodeURIComponent(video.autor)}" 
+                style="color: #0033CC; text-decoration: none;">${video.autor}</a></strong></p>
             <p>${video.visualizacoes || 0} views • ${dataExibicao}</p>
         `;
         container.appendChild(card);
     });
 }
 
-// 2. FUNÇÃO: Carrega todos os vídeos (Segura)
+// 2. FUNÇÃO: Carrega todos os vídeos
 async function carregarTodosOsVideos() {
     const container = document.getElementById('videoContainer');
     if (!container) return;
@@ -71,7 +72,7 @@ async function carregarTodosOsVideos() {
         let { data, error } = await supabaseClient
             .from('videos')
             .select('*')
-            .eq('copyright_strike', false) // Filtro de segurança
+            .eq('copyright_strike', false)
             .order('id', { ascending: false });
 
         if (error || !data || data.length === 0) {
@@ -85,7 +86,7 @@ async function carregarTodosOsVideos() {
     }
 }
 
-// 3. FUNÇÃO: Filtra os vídeos por tag (Segura)
+// 3. FUNÇÃO: Filtra os vídeos por tag
 async function filtrarVideosPorTag(tag) {
     const container = document.getElementById('videoContainer');
     if (!container || !supabaseClient) return;
@@ -107,7 +108,7 @@ async function filtrarVideosPorTag(tag) {
     }
 }
 
-// 4. FUNÇÃO: Busca vídeos por título ou autor (Segura)
+// 4. FUNÇÃO: Busca vídeos por título ou autor
 async function buscarVideos() {
     const searchInput = document.getElementById('searchInput');
     const termo = searchInput ? searchInput.value.trim() : "";
@@ -138,7 +139,7 @@ async function buscarVideos() {
     }
 }
 
-// 5. FUNÇÃO: Carrega criadores recentes (Segura)
+// 5. FUNÇÃO: Carrega criadores recentes
 async function carregarUsuariosRecentes() {
     const authorsList = document.getElementById('dynamicAuthors');
     if (!authorsList || !supabaseClient) return;
@@ -154,7 +155,8 @@ async function carregarUsuariosRecentes() {
         if (data) {
             const autoresUnicos = [...new Set(data.map(item => item.autor))].slice(0, 5);
             authorsList.innerHTML = autoresUnicos.map(autor => 
-                `<li>• <a href="canais.html?user=${encodeURIComponent(autor)}" style="color: #0033CC; font-weight: bold; text-decoration: none;">${autor}</a></li>`
+                `<li>• <a href="canais.html?user=${encodeURIComponent(autor)}" 
+                    style="color: #0033CC; font-weight: bold; text-decoration: none;">${autor}</a></li>`
             ).join('');
         }
     } catch (e) {
@@ -174,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tagEl.classList.add('active-tag');
             
             const tagSelecionada = tagEl.getAttribute('data-tag');
-            document.getElementById('secaoTituloVideo').innerText = ` Vídeos Marcados com: #${tagSelecionada}`;
+            document.getElementById('secaoTituloVideo').innerText = ` Vídeos Marcados com: #${tagSelecionada}`;
             document.getElementById('limparFiltro').style.display = 'inline';
 
             await filtrarVideosPorTag(tagSelecionada);
