@@ -18,8 +18,8 @@ const videosPadrao = [
         visualizacoes: "399,580,346",
         data: "Há 21 anos",
         thumb: "https://img.youtube.com/vi/jNQXAC9IVRw/mqdefault.jpg",
-        embedurl: "https://www.youtube.com/embed/jNQXAC9IVRw", //  aqui
-        tipo: "youtube", //  define o tipo
+        embedurl: "https://www.youtube.com/embed/jNQXAC9IVRw",
+        tipo: "youtube",
         copyright_strike: false
     }
 ];
@@ -50,6 +50,46 @@ function carregarVideosFallback() {
 // ==========================================
 // FUNÇÕES MODERNAS (Supabase)
 // ==========================================
+
+// Inserir vídeo exemplo no Supabase (equivalente ao INSERT INTO)
+async function inserirVideoExemplo() {
+    if (!supabaseClient) return;
+
+    try {
+        // Verifica se já existe
+        const { data: existente } = await supabaseClient
+            .from('videos')
+            .select('id')
+            .eq('id', "1")
+            .single();
+
+        if (!existente) {
+            const { error } = await supabaseClient
+                .from('videos')
+                .insert([
+                    {
+                        id: "1",
+                        titulo: "Me at the zoo - O primeiro vídeo do YouTube!",
+                        autor: "jawed",
+                        visualizacoes: "399580346",
+                        data: "Há 21 anos",
+                        thumb: "https://img.youtube.com/vi/jNQXAC9IVRw/mqdefault.jpg",
+                        embedurl: "https://www.youtube.com/embed/jNQXAC9IVRw",
+                        tipo: "youtube",
+                        copyright_strike: false
+                    }
+                ]);
+
+            if (error) {
+                console.error("Erro ao inserir vídeo exemplo:", error);
+            } else {
+                console.log("Vídeo exemplo inserido com sucesso!");
+            }
+        }
+    } catch (e) {
+        console.error("Erro inesperado ao inserir vídeo:", e);
+    }
+}
 
 // 1. Renderiza vídeos
 function renderizarVideos(videos) {
@@ -117,18 +157,16 @@ async function carregarTodosOsVideos() {
 // ==========================================
 // CONFIGURAÇÃO DOS EVENTOS
 // ==========================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     if (navegadorAntigo) {
         carregarVideosFallback();
         return;
     }
 
-    // Eventos modernos
-    document.getElementById('searchInput')?.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') buscarVideos();
-    });
-
     if (supabaseClient) {
+        // Insere o vídeo exemplo se não existir
+        await inserirVideoExemplo();
+
         carregarTodosOsVideos();
         carregarUsuariosRecentes();
     } else {
