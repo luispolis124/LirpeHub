@@ -45,10 +45,10 @@
             <button class="btn-classic" id="btnPesquisar" style="padding: 2px 10px; font-size: 11px; cursor: pointer;">Procurar</button>
         </div>
 
+        <!-- Menu simplificado e fácil de gerenciar -->
         <nav class="nav-links" id="mainNav" style="text-align: center; font-size: 12px;">
-            <a href="index.html" class="active">Página Inicial</a> | 
-            <a href="#">Vídeos</a> | 
-            <a href="#" id="navCanaisLink" onclick="redirecionarParaCanal(event)">Canais</a> |
+            <a href="index.html">Página Inicial</a> | 
+            <a href="lista-canais.html">Canais</a> | 
             <a href="enviar.html" style="color: #CC0000; font-weight: bold;">Enviar Vídeo</a>
             <span id="authControl"></span>
         </nav>
@@ -100,7 +100,7 @@
     <script src="js/main.js"></script>
 
     <script>
-        // Controle de autenticação com link para Studio
+        // Controle de autenticação
         window.addEventListener('DOMContentLoaded', async () => {
             const authControl = document.getElementById('authControl');
             if (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY) {
@@ -115,30 +115,12 @@
             }
         });
 
-        // Redirecionamento para canais
-        async function redirecionarParaCanal(e) {
-            e.preventDefault();
-            if (typeof CONFIG === 'undefined' || !CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY) { 
-                window.location.href = "login.html"; 
-                return; 
-            }
-            window.supabaseClient = window.supabaseClient || supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-            const { data: { session } } = await window.supabaseClient.auth.getSession();
-            if (session) {
-                const nomeUsuario = session.user.user_metadata?.display_name || session.user.email.split('@')[0];
-                window.location.href = `canais.html?user=${encodeURIComponent(nomeUsuario)}`;
-            } else {
-                window.location.href = "login.html";
-            }
-        }
-
-        // Função de busca de vídeos (placeholder)
+        // Função de busca (mantida conforme seu projeto)
         function buscarVideos(query = '') {
             const videoContainer = document.getElementById('videoContainer');
             videoContainer.innerHTML = `<p style="font-size:12px;color:#666;">Buscando vídeos: <strong>${query}</strong>...</p>`;
         }
 
-        // Tags
         document.querySelectorAll('.tag-link').forEach(tag => {
             tag.addEventListener('click', function() {
                 document.querySelectorAll('.tag-link').forEach(t => t.classList.remove('active-tag'));
@@ -151,13 +133,11 @@
             });
         });
 
-        // Pesquisa
         document.getElementById('btnPesquisar').addEventListener('click',()=>buscarVideos(document.getElementById('searchInput').value));
         document.getElementById('searchInput').addEventListener('keydown',e=>{
             if(e.key==='Enter') buscarVideos(document.getElementById('searchInput').value);
         });
 
-        // Limpar filtro
         document.getElementById('limparFiltro').addEventListener('click', function(e) {
             e.preventDefault();
             document.getElementById('searchInput').value = '';
