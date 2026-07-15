@@ -14,20 +14,43 @@
             margin: 15px auto; 
             padding: 0 10px; 
             box-sizing: border-box;
-            flex-direction: row; /* Padrão PC: Lado a lado */
+            flex-direction: row;
         }
 
-        .video-column {
-            flex: 3; 
-            min-width: 0;
+        .video-column { flex: 3; min-width: 0; }
+        .sidebar-column { flex: 1; min-width: 200px; font-size: 12px; font-family: Arial, sans-serif; }
+
+        /* Grade de Vídeos */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            width: 100%;
         }
 
-        .sidebar-column {
-            flex: 1; 
-            min-width: 200px; 
-            font-size: 12px; 
-            font-family: Arial, sans-serif;
+        .video-card {
+            border: 1px solid #ccc;
+            padding: 5px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
         }
+
+        .video-card img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+
+        .video-card h3 {
+            font-size: 13px;
+            margin: 5px 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .video-card p { font-size: 11px; color: #666; margin: 0; }
 
         /* Ajustes de Busca */
         .search-bar-2005 input {
@@ -38,7 +61,7 @@
             box-sizing: border-box;
         }
 
-        /* Tags Estilo Retro Ativas */
+        /* Tags Estilo Retro - Tamanho Padronizado */
         .tag-link {
             color: #0033CC;
             text-decoration: underline;
@@ -46,35 +69,16 @@
             margin-right: 8px;
             display: inline-block;
             padding: 1px 4px;
+            font-size: 12px; 
         }
 
-        .tag-link:hover {
-            background-color: #E6E6E6;
-            text-decoration: none;
-        }
+        .tag-link:hover { background-color: #E6E6E6; text-decoration: none; }
+        .tag-link.active-tag { background-color: #FFCC00; color: #000; text-decoration: none; font-weight: bold; border: 1px dashed #333; }
 
-        .tag-link.active-tag {
-            background-color: #FFCC00;
-            color: #000;
-            text-decoration: none;
-            font-weight: bold;
-            border: 1px dashed #333;
-        }
-
-        /* Regras exclusivas para Celulares (Telas menores que 768px) */
         @media (max-width: 768px) {
-            .main-content-layout {
-                flex-direction: column; /* Empilha as colunas verticalmente */
-            }
-            
-            .search-bar-2005 input {
-                width: 70%; /* Encolhe a barra no celular para caber na tela */
-            }
-            
-            .sidebar-column {
-                width: 100%;
-                box-sizing: border-box;
-            }
+            .main-content-layout { flex-direction: column; }
+            .search-bar-2005 input { width: 70%; }
+            .sidebar-column { width: 100%; box-sizing: border-box; }
         }
     </style>
 </head>
@@ -89,8 +93,8 @@
         </div>
         
         <div class="search-bar-2005" style="margin: 10px 0; text-align: center;">
-            <input type="text" id="classicSearchInput" placeholder="Pesquisar vídeos...">
-            <button class="btn-classic" id="classicSearchBtn" style="padding: 2px 10px; font-size: 11px; cursor: pointer;">Procurar</button>
+            <input type="text" id="searchInput" placeholder="Pesquisar vídeos...">
+            <button class="btn-classic" onclick="buscarVideos()" style="padding: 2px 10px; font-size: 11px; cursor: pointer;">Procurar</button>
         </div>
 
         <nav class="nav-links">
@@ -103,29 +107,21 @@
 
     <div class="news-ticker">
         <div class="ticker-content">
-            <strong>🔥 PLANTÃO LIRPE:</strong> 
-            Rumor indica que o Google estaria interessado em comprar novo site de vídeos chamado YouTube 
-            &bull; Orkut bate recorde de usuários ativos no Brasil 
-            &bull; Seu MSN Messenger caiu de novo? Saiba o que fazer 
-            &bull; LirpeHub é oficialmente lançado na Web 2.0!
+            <strong>🔥 PLANTÃO LIRPE:</strong> LirpeHub é oficialmente lançado na Web 2.0!
         </div>
     </div>
 
     <div class="main-content-layout">
-        
         <div class="video-column">
             <h3 style="background: #EAEAEA; border: 1px solid #CCCCCC; padding: 5px; margin: 0 0 15px 0; font-size: 13px; color: #333; display: flex; justify-content: space-between; align-items: center;">
                 <span id="secaoTituloVideo">📺 Vídeos Sendo Assistidos Agora</span>
                 <a href="javascript:void(0);" id="limparFiltro" style="font-size: 11px; color: #CC0000; display: none; text-decoration: none;">[Ver Todos]</a>
             </h3>
             
-            <main class="video-grid" id="videoContainer" style="margin-top: 0;">
-                <!-- O seu js/main.js carrega e injeta os vídeos aqui -->
-            </main>
+            <main class="video-grid" id="videoContainer"></main>
         </div>
 
         <aside class="sidebar-column">
-            
             <div style="border: 1px solid #CCD2E0; background: #F0F3F8; padding: 10px; margin-bottom: 15px;">
                 <h4 style="margin: 0 0 8px 0; color: #0033CC; border-bottom: 1px solid #CCD2E0; padding-bottom: 3px; font-size: 12px;">
                     ⭐ Lirpeiros Recentes
@@ -135,47 +131,33 @@
                 </ul>
             </div>
 
-            <!-- NUVEM DE TAGS COM FILTRO DINÂMICO RETRÔ -->
             <div style="border: 1px solid #CCCCCC; background: #FAFAFA; padding: 10px;">
                 <h4 style="margin: 0 0 8px 0; color: #555; border-bottom: 1px solid #CCCCCC; padding-bottom: 3px; font-size: 12px;">
                     🏷️ Tags Quentes de 2005
                 </h4>
                 <div style="line-height: 1.8; text-align: justify;" id="tagCloud">
-                    <span class="tag-link" data-tag="AMV" style="font-size: 14px; font-weight: bold;">AMV</span>
-                    <span class="tag-link" data-tag="tutorial" style="font-size: 11px;">tutorial</span>
-                    <span class="tag-link" data-tag="vlog" style="font-size: 16px; font-weight: bold;">vlog</span>
-                    <span class="tag-link" data-tag="cs_1.6" style="font-size: 12px;">cs_1.6</span>
-                    <span class="tag-link" data-tag="linkin_park" style="font-size: 15px; font-weight: bold;">linkin_park</span>
-                    <span class="tag-link" data-tag="retro" style="font-size: 11px;">retro</span>
+                    <span class="tag-link" data-tag="AMV">AMV</span>
+                    <span class="tag-link" data-tag="tutorial">tutorial</span>
+                    <span class="tag-link" data-tag="vlog">vlog</span>
+                    <span class="tag-link" data-tag="cs_1.6">cs_1.6</span>
+                    <span class="tag-link" data-tag="linkin_park">linkin_park</span>
+                    <span class="tag-link" data-tag="retro">retro</span>
                 </div>
             </div>
-
         </aside>
     </div>
 
-    <footer class="main-footer">
+    <footer>
         <p>&copy; 2005 LirpeHub, Inc. | <a href="#">Sobre Nós</a> | <a href="#">Ajuda</a></p>
     </footer>
 
-    <!-- Scripts CDN jsDelivr -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer crossorigin="anonymous"></script>
-    
-    <!-- 1. Carrega as configurações primeiro -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="js/config.js" defer></script>
-    
-    <!-- 2. Carrega o script principal que usará as chaves -->
     <script src="js/main.js" defer></script>
 
     <script>
-        // Redirecionamento Dinâmico para o Canal Próprio
         async function redirecionarParaCanal() {
-            // Verifica se o arquivo config.js foi carregado com sucesso
-            if (typeof CONFIG === 'undefined') {
-                console.error("Arquivo config.js não foi encontrado!");
-                window.location.href = "login.html";
-                return;
-            }
-
+            if (typeof CONFIG === 'undefined') { window.location.href = "login.html"; return; }
             if (typeof supabase !== 'undefined') {
                 const tempClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
                 try {
@@ -183,15 +165,9 @@
                     if (session && session.user) {
                         const display = session.user.user_metadata?.display_name || session.user.email.split('@')[0];
                         window.location.href = `canais.html?user=${encodeURIComponent(display)}`;
-                    } else {
-                        window.location.href = "login.html";
-                    }
-                } catch (err) {
-                    window.location.href = "login.html";
-                }
-            } else {
-                window.location.href = "login.html";
-            }
+                    } else { window.location.href = "login.html"; }
+                } catch (err) { window.location.href = "login.html"; }
+            } else { window.location.href = "login.html"; }
         }
     </script>
 </body>
