@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Saindo do LirpeHub...</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #F0F3F8; }
+        .message { border: 1px solid #CCCCCC; padding: 20px; background: #FFF; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="message">
+        <h2>Saindo do LirpeHub...</h2>
+        <p>Aguarde um momento enquanto encerramos sua sessão.</p>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', async () => {
+            if (typeof CONFIG !== 'undefined') {
+                const supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+                
+                // Realiza o logout
+                await supabase.auth.signOut();
+                
+                // Redireciona para a home após o logout
+                setTimeout(() => {
+                    window.location.href = "index.html";
+                }, 1000);
+            } else {
+                alert("Erro: Configuração não encontrada.");
+                window.location.href = "index.html";
+            }
+        });
+    </script>
+</body>
+</html>

@@ -38,11 +38,12 @@
             <button class="btn-classic" onclick="buscarVideos()" style="padding: 2px 10px; font-size: 11px; cursor: pointer;">Procurar</button>
         </div>
 
-        <nav class="nav-links">
+        <nav class="nav-links" id="mainNav">
             <a href="index.html" class="active">Página Inicial</a> | 
             <a href="#">Vídeos</a> | 
             <a href="javascript:void(0);" id="navCanaisLink" onclick="redirecionarParaCanal()">Canais</a> |
             <a href="enviar.html" style="color: #CC0000; font-weight: bold;">Enviar Vídeo</a>
+            <span id="authControl"></span>
         </nav>
     </header>
 
@@ -85,19 +86,31 @@
         <p>&copy; 2005 LirpeHub, Inc. | <a href="diretrizes.html">Diretrizes da Comunidade</a> | <a href="sobre-nos.html">Sobre Nós</a> | <a href="ajuda.html">Ajuda</a></p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="js/config.js" defer></script>
-    <script src="js/main.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/main.js"></script>
 
     <script>
+        window.addEventListener('DOMContentLoaded', async () => {
+            const authControl = document.getElementById('authControl');
+            if (typeof CONFIG !== 'undefined') {
+                const supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (session) {
+                    authControl.innerHTML = ' | <a href="logout.html" style="color: #CC0000; font-weight: bold;">Sair</a>';
+                } else {
+                    authControl.innerHTML = ' | <a href="login.html" style="color: #0033CC; font-weight: bold;">Entrar</a>';
+                }
+            }
+        });
+
         async function redirecionarParaCanal() {
             if (typeof CONFIG === 'undefined') { window.location.href = "login.html"; return; }
-            if (typeof supabase !== 'undefined') {
-                const tempClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-                const { data: { session } } = await tempClient.auth.getSession();
-                if (session) window.location.href = `canais.html?user=${encodeURIComponent(session.user.user_metadata?.display_name || session.user.email.split('@')[0])}`;
-                else window.location.href = "login.html";
-            }
+            const tempClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+            const { data: { session } } = await tempClient.auth.getSession();
+            if (session) window.location.href = `canais.html?user=${encodeURIComponent(session.user.user_metadata?.display_name || session.user.email.split('@')[0])}`;
+            else window.location.href = "login.html";
         }
 
         document.querySelectorAll('.tag-link').forEach(tag => {

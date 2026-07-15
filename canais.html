@@ -9,12 +9,16 @@
         .channel-header { background: #F0F3F8; border: 1px solid #CCD2E0; padding: 15px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; }
         .channel-avatar { width: 80px; height: 80px; background: #CCC; border: 2px solid #999; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; color: #666; }
         .channel-info h2 { margin: 0 0 5px 0; color: #333; }
-        .channel-info p { margin: 0; font-size: 12px; color: #666; }
         .owner-badge { background: #FFE0B2; color: #E65100; border: 1px solid #FFB74D; padding: 2px 6px; font-size: 10px; font-weight: bold; border-radius: 3px; display: inline-block; margin-top: 5px; }
-        .main-content-layout { display: flex; gap: 20px; max-width: 1000px; margin: 15px auto; padding: 0 10px; box-sizing: border-box; }
-        .video-column { flex: 3; min-width: 0; }
-        .sidebar-column { flex: 1; min-width: 200px; font-size: 12px; font-family: Arial, sans-serif; }
-        @media (max-width: 768px) { .main-content-layout { flex-direction: column; } .sidebar-column { width: 100%; } }
+        .main-content-layout { display: flex; gap: 20px; max-width: 1000px; margin: 15px auto; padding: 0 10px; }
+        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
+        .btn-delete { background: #CC0000; color: white; border: none; width: 100%; cursor: pointer; padding: 5px; margin-top: 5px; font-size: 11px; }
+        
+        /* Estilos para Edição */
+        .edit-icon { cursor: pointer; color: #555; font-size: 14px; margin-left: 5px; }
+        .edit-icon:hover { color: #000; }
+        .edit-box { display: none; margin-top: 5px; background: #eee; padding: 5px; }
+        @media (max-width: 768px) { .main-content-layout { flex-direction: column; } }
     </style>
 </head>
 <body>
@@ -28,146 +32,147 @@
         </div>
         <nav class="nav-links">
             <a href="index.html">Página Inicial</a> | 
-            <a href="#">Vídeos</a> | 
             <a href="canais.html" class="active">Canais</a> |
             <a href="enviar.html" style="color: #CC0000; font-weight: bold;">Enviar Vídeo</a>
+            <span id="linkModeracao" style="display:none;"> | <a href="moderacao.html" style="color: purple;">Moderação</a></span>
         </nav>
     </header>
 
-    <div class="container" style="max-width: 1000px; margin: 15px auto; padding: 0 10px; box-sizing: border-box;">
-        
+    <div class="container" style="max-width: 1000px; margin: 15px auto; padding: 0 10px;">
         <div class="channel-header">
             <div class="channel-avatar" id="canalAvatar">?</div>
             <div class="channel-info">
-                <h2 id="canalNome">Carregando Canal...</h2>
-                <p id="canalSub">Carregando estatísticas...</p>
+                <h2 id="canalNome">Carregando...</h2>
+                <button id="btnInscricao" onclick="toggleInscricao()" style="display:none;">Carregando...</button>
                 
-                <button id="btnInscricao" onclick="toggleInscricao()" style="margin-top: 10px; cursor: pointer; display: none;">
-                    Carregando...
-                </button>
-                
-                <div id="statusDono" style="display: none;">
+                <div id="statusDono" style="display: none; margin-top:10px;">
                     <span class="owner-badge">Seu Espaço (Dono)</span>
                 </div>
             </div>
         </div>
 
-        <div style="background: #FFF; border: 1px solid #CCC; padding: 10px; margin-bottom: 20px; font-size: 12px; color: #333;">
-            <h4 style="margin: 0 0 5px 0; color: #555; border-bottom: 1px solid #EEE; padding-bottom: 2px;">Sobre o canal:</h4>
-            <p id="canalDescricao" style="margin: 5px 0 0 0; line-height: 1.4; font-style: italic;">Carregando descrição...</p>
+        <div style="background: #FFF; border: 1px solid #CCC; padding: 10px; margin-bottom: 20px;">
+            <p id="canalDescricao" style="font-style: italic;">Carregando...</p>
+            <span id="btnEditarDesc" class="edit-icon" style="display:none;" onclick="toggleEdit('descEditBox')"> Editar descrição</span>
+            <div id="descEditBox" class="edit-box">
+                <input type="text" id="inputNovaDesc" placeholder="Nova descrição...">
+                <button onclick="salvarDescricao()">Salvar</button>
+            </div>
         </div>
 
-        <div class="main-content-layout" style="margin: 0; padding: 0;">
+        <div class="main-content-layout">
             <div class="video-column">
-                <h3 style="background: #EAEAEA; border: 1px solid #CCCCCC; padding: 5px; margin: 0 0 15px 0; font-size: 13px; color: #333;" id="secaoTitulo">
-                     Vídeos de ...
-                </h3>
-                <main class="video-grid" id="canalVideosContainer" style="margin-top: 0;"></main>
-            </div>
-
-            <aside class="sidebar-column">
-                <div style="border: 1px solid #CCD2E0; background: #F0F3F8; padding: 10px; margin-bottom: 15px;">
-                    <h4 style="margin: 0 0 8px 0; color: #0033CC; border-bottom: 1px solid #CCD2E0; padding-bottom: 3px; font-size: 12px;">
-                         Detalhes do Canal
-                    </h4>
-                    <ul style="list-style: none; padding: 0; margin: 0; line-height: 1.8;">
-                        <li><strong>Inscrição:</strong> <span id="membroDesde">Recente</span></li>
-                        <li><strong>Vídeos Enviados:</strong> <span id="totalVideos">0</span></li>
-                    </ul>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 id="secaoTitulo">Vídeos do Canal</h3>
+                    <select id="ordemSelect" onchange="carregarCanal()">
+                        <option value="desc">Mais recentes</option>
+                        <option value="asc">Mais antigos</option>
+                    </select>
                 </div>
-            </aside>
+                <main class="video-grid" id="canalVideosContainer"></main>
+            </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="js/config.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
     
     <script>
         let supabaseClient = null;
 
         window.addEventListener('DOMContentLoaded', async () => {
-            if (typeof CONFIG !== 'undefined') {
-                supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-                await carregarCanal();
-            }
+            supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+            await carregarCanal();
         });
+
+        function toggleEdit(id) {
+            const el = document.getElementById(id);
+            el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+        }
 
         async function carregarCanal() {
             const urlParams = new URLSearchParams(window.location.search);
             let canalAlvo = urlParams.get('user');
-            let userEmail = "";
-
             if (!canalAlvo) return;
 
-            // --- IMPLEMENTAÇÃO DA CONTAGEM DE INSCRITOS ---
-            const { count } = await supabaseClient
-                .from('inscricoes')
-                .select('*', { count: 'exact', head: true })
-                .eq('canal_seguido', canalAlvo);
-            
-            document.getElementById('canalSub').innerText = `${count || 0} inscritos`;
-            // ----------------------------------------------
-
-            try {
-                const { data: { session } } = await supabaseClient.auth.getSession();
-                if (session) {
-                    userEmail = session.user.email;
-                    if (canalAlvo.toLowerCase() === (session.user.user_metadata?.display_name || '').toLowerCase()) {
-                        document.getElementById('statusDono').style.display = 'block';
-                    } else {
-                        verificarInscricao(canalAlvo, userEmail);
-                    }
-                }
-            } catch (err) { console.warn(err); }
+            const ordem = document.getElementById('ordemSelect').value;
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            const ehDono = session && session.user.user_metadata?.display_name === canalAlvo;
 
             document.getElementById('canalNome').innerText = canalAlvo;
             document.getElementById('canalAvatar').innerText = canalAlvo.charAt(0).toUpperCase();
 
-            try {
-                const { data: videos } = await supabaseClient.from('videos').select('*').eq('autor', canalAlvo);
-                if (videos && videos.length > 0) {
-                    document.getElementById('canalDescricao').innerText = videos[0].descricao || "Bem-vindo ao meu canal!";
-                    document.getElementById('totalVideos').innerText = videos.length;
-                }
-            } catch (e) { console.error(e); }
+            const { data: videos } = await supabaseClient
+                .from('videos')
+                .select('*')
+                .eq('autor', canalAlvo)
+                .order('created_at', { ascending: (ordem === 'asc') });
+
+            const container = document.getElementById('canalVideosContainer');
+            if (videos) {
+                container.innerHTML = videos.map(v => `
+                    <div style="border:1px solid #ccc; padding:5px;">
+                        <a href="watch.html?v=${v.id}"><img src="${v.thumb}" style="width:100%"></a>
+                        <div style="margin-top:5px;">
+                            ${ehDono ? 
+                                `<span>${v.titulo}</span> <span class="edit-icon" onclick="toggleEdit('edit-tit-${v.id}')"></span>
+                                 <div id="edit-tit-${v.id}" class="edit-box">
+                                    <input type="text" id="tit-${v.id}" value="${v.titulo}">
+                                    <button onclick="editarTitulo('${v.id}')">OK</button>
+                                 </div>` 
+                                : `<h3>${v.titulo}</h3>`}
+                        </div>
+                        ${ehDono ? `<button class="btn-delete" onclick="deletarVideo('${v.id}')">Deletar</button>` : ''}
+                    </div>
+                `).join('');
+                document.getElementById('canalDescricao').innerText = videos[0]?.descricao || "Bem-vindo ao meu canal!";
+            }
+
+            if (ehDono) {
+                document.getElementById('statusDono').style.display = 'block';
+                document.getElementById('btnEditarDesc').style.display = 'inline';
+            } else {
+                verificarInscricao(canalAlvo, session?.user.email);
+            }
         }
 
-        async function verificarInscricao(canalAlvo, emailSeguidor) {
-            if (!emailSeguidor) return;
+        async function editarTitulo(id) {
+            const novoTitulo = document.getElementById('tit-' + id).value;
+            await supabaseClient.from('videos').update({ titulo: novoTitulo }).eq('id', id);
+            location.reload();
+        }
+
+        async function deletarVideo(id) {
+            if (!confirm("Tem certeza?")) return;
+            await supabaseClient.from('videos').delete().eq('id', id);
+            location.reload();
+        }
+
+        async function salvarDescricao() {
+            const novaDesc = document.getElementById('inputNovaDesc').value;
+            const canalAlvo = new URLSearchParams(window.location.search).get('user');
+            await supabaseClient.from('videos').update({ descricao: novaDesc }).eq('autor', canalAlvo);
+            location.reload();
+        }
+
+        async function verificarInscricao(canalAlvo, email) {
+            if (!email) return;
             const btn = document.getElementById('btnInscricao');
             btn.style.display = 'inline-block';
-            
-            const { data } = await supabaseClient.from('inscricoes').select('*').eq('seguidor_email', emailSeguidor).eq('canal_seguido', canalAlvo);
-            
-            if (data && data.length > 0) {
-                btn.innerText = " Inscrito";
-                btn.dataset.inscrito = "true";
-            } else {
-                btn.innerText = "+ Inscrever-se";
-                btn.dataset.inscrito = "false";
-            }
+            const { data } = await supabaseClient.from('inscricoes').select('*').eq('seguidor_email', email).eq('canal_seguido', canalAlvo);
+            btn.innerText = data.length > 0 ? " Inscrito" : "+ Inscrever-se";
+            btn.dataset.inscrito = data.length > 0 ? "true" : "false";
         }
 
         async function toggleInscricao() {
             const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session) { alert("Faça login para se inscrever!"); return; }
-
+            if (!session) return alert("Faça login!");
             const canalAlvo = new URLSearchParams(window.location.search).get('user');
-            const email = session.user.email;
-            const btn = document.getElementById('btnInscricao');
-            const jaInscrito = btn.dataset.inscrito === "true";
-
-            if (jaInscrito) {
-                await supabaseClient.from('inscricoes').delete().eq('seguidor_email', email).eq('canal_seguido', canalAlvo);
-                btn.innerText = "+ Inscrever-se";
-                btn.dataset.inscrito = "false";
-            } else {
-                await supabaseClient.from('inscricoes').insert([{ seguidor_email: email, canal_seguido: canalAlvo }]);
-                btn.innerText = " Inscrito";
-                btn.dataset.inscrito = "true";
-            }
-            // Atualiza contagem após clique
-            carregarCanal(); 
+            const jaInscrito = document.getElementById('btnInscricao').dataset.inscrito === "true";
+            
+            if (jaInscrito) await supabaseClient.from('inscricoes').delete().eq('seguidor_email', session.user.email).eq('canal_seguido', canalAlvo);
+            else await supabaseClient.from('inscricoes').insert([{ seguidor_email: session.user.email, canal_seguido: canalAlvo }]);
+            location.reload();
         }
     </script>
 </body>
