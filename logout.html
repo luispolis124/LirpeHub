@@ -4,8 +4,24 @@
     <meta charset="UTF-8">
     <title>Saindo do LirpeHub...</title>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #F0F3F8; }
-        .message { border: 1px solid #CCCCCC; padding: 20px; background: #FFF; text-align: center; }
+        body { 
+            font-family: Arial, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            background: #F0F3F8; 
+            margin: 0;
+        }
+        .message { 
+            border: 1px solid #CCCCCC; 
+            padding: 20px; 
+            background: #FFF; 
+            text-align: center; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        h2 { color: #CC0000; margin-bottom: 10px; }
+        p { color: #555; }
     </style>
 </head>
 <body>
@@ -21,15 +37,24 @@
     <script>
         window.addEventListener('DOMContentLoaded', async () => {
             if (typeof CONFIG !== 'undefined') {
-                const supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-                
-                // Realiza o logout
-                await supabase.auth.signOut();
-                
-                // Redireciona para a home após o logout
-                setTimeout(() => {
-                    window.location.href = "index.html";
-                }, 1000);
+                try {
+                    const supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+                    
+                    // Realiza o logout
+                    const { error } = await supabaseClient.auth.signOut();
+                    
+                    if (error) {
+                        console.error("Erro ao sair:", error);
+                        alert("Não foi possível encerrar a sessão corretamente.");
+                    }
+                } catch (err) {
+                    console.error("Erro inesperado:", err);
+                } finally {
+                    // Redireciona para a home após o logout
+                    setTimeout(() => {
+                        window.location.href = "index.html";
+                    }, 1200);
+                }
             } else {
                 alert("Erro: Configuração não encontrada.");
                 window.location.href = "index.html";

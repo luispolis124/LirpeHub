@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LirpeHub - Entrar ou Cadastrar-se</title>
     <link rel="stylesheet" href="styles/style.css">
+    <style>
+        .btn-classic:disabled {
+            background: #DDD;
+            color: #999;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 <body>
     <header class="main-header">
@@ -48,28 +55,22 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     
     <script>
         let supabaseClient = null;
         const authStatus = document.getElementById('authStatus');
 
-        // Espera carregar o DOM e as configurações do config.js
         window.addEventListener('DOMContentLoaded', () => {
-            // Proteção para verificar se o arquivo config.js existe e foi importado
-            if (typeof CONFIG === 'undefined') {
-                console.error("Erro: O arquivo de configurações js/config.js está ausente.");
+            if (typeof CONFIG === 'undefined' || typeof window.supabase === 'undefined') {
                 authStatus.innerText = "Erro: Configuração do Supabase pendente.";
                 authStatus.style.color = "red";
                 return;
             }
-
-            // Inicialização segura utilizando as variáveis do config.js
             try {
                 supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
             } catch (err) {
-                console.error("Erro ao inicializar o Supabase:", err);
                 authStatus.innerText = "Erro ao conectar com o banco de dados.";
                 authStatus.style.color = "red";
             }
@@ -86,7 +87,6 @@
         const switchLink = document.getElementById('switchLink');
         const switchText = document.getElementById('switchText');
 
-        // Alternar entre modo de Login e Cadastro
         switchLink.addEventListener('click', (e) => {
             e.preventDefault();
             isSignUpMode = !isSignUpMode;
@@ -111,7 +111,6 @@
             }
         });
 
-        // Evento de Envio do Formulário
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -121,24 +120,26 @@
                 return;
             }
 
+            submitBtn.disabled = true;
             authStatus.innerText = "Processando...";
             authStatus.style.color = "black";
 
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
 
             if (isSignUpMode) {
-                const username = usernameInput.value;
+                const username = usernameInput.value.trim();
+                if (!username) {
+                    authStatus.innerText = "Erro: Informe um apelido.";
+                    authStatus.style.color = "red";
+                    submitBtn.disabled = false;
+                    return;
+                }
 
-                // 1. Registrar Usuário no Auth do Supabase
-                const { data, error } = await supabaseClient.auth.signUp({
-                    email: email,
-                    password: password,
-                    options: {
-                        data: {
-                            display_name: username // Salva o apelido no perfil do usuário
-                        }
-                    }
+                const { error } = await supabaseClient.auth.signUp({
+                    email,
+                    password,
+                    options: { data: { display_name: username } }
                 });
 
                 if (error) {
@@ -150,11 +151,7 @@
                     setTimeout(() => { window.location.href = "index.html"; }, 2000);
                 }
             } else {
-                // 2. Fazer Login do Usuário
-                const { data, error } = await supabaseClient.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
+                const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
                 if (error) {
                     authStatus.innerText = "Erro ao entrar: " + error.message;
@@ -165,6 +162,8 @@
                     setTimeout(() => { window.location.href = "index.html"; }, 1500);
                 }
             }
+
+            submitBtn.disabled = false;
         });
     </script>
 </body>

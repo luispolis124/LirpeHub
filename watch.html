@@ -11,12 +11,13 @@
         .main-video-section { flex: 3; min-width: 0; }
         .sidebar-section { flex: 1; min-width: 260px; }
         .video-player-box { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border: 1px solid #CCCCCC; overflow: hidden; }
-        #videoPlayerIframe { width: 100%; height: 100%; border: none; }
         .video-js { width: 100%; height: 100%; }
         .video-details-box { border: 1px solid #CCD2E0; background: #F0F3F8; padding: 10px; margin-top: 10px; font-size: 12px; }
         .rating-box { display: flex; align-items: center; gap: 5px; }
         .star-item { font-size: 16px; color: #CCCCCC; cursor: pointer; transition: color 0.1s; }
         .btn-flag { background: #FCE4D6; border: 1px solid #C65911; color: #C65911; font-weight: bold; padding: 2px 6px; cursor: pointer; }
+        .comments-section { margin-top: 15px; border: 1px solid #CCC; padding: 10px; background: #FAFAFA; }
+        .comments-section textarea { width: 100%; height: 60px; margin-bottom: 8px; }
         @media (max-width: 768px) { .watch-container { flex-direction: column; } }
     </style>
 </head>
@@ -30,16 +31,15 @@
         </div>
         <nav class="nav-links">
             <a href="index.html">Página Inicial</a> | 
-            <a href="javascript:void(0);" onclick="redirecionarParaCanal()">Canais</a> |
+            <a href="#" onclick="redirecionarParaCanal(event)">Canais</a> |
             <a href="enviar.html" style="color: #CC0000; font-weight: bold;">Enviar Vídeo</a>
         </nav>
     </header>
 
     <div class="container watch-container">
         <main class="main-video-section">
-            <div class="video-player-box" id="playerContainer">
-                <iframe id="videoPlayerIframe" src="" style="display:none;" allowfullscreen></iframe>
-                <video id="lirpe-player" class="video-js vjs-default-skin vjs-big-play-centered" controls style="display:none;"></video>
+            <div class="video-player-box">
+                <video id="lirpe-player" class="video-js vjs-default-skin vjs-big-play-centered" controls></video>
             </div>
 
             <div class="video-details-box">
@@ -85,6 +85,10 @@
         let supabaseClient, idVideoAtual, videoData, player;
 
         window.addEventListener('DOMContentLoaded', async () => {
+            if (typeof CONFIG === 'undefined') {
+                alert("Erro: config.js não carregado.");
+                return;
+            }
             supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
             await iniciarPagina();
             
@@ -93,34 +97,26 @@
         });
 
         async function iniciarPagina() {
-            const vId = new URLSearchParams(window.location.search).get('v');
-            if (!vId) return;
+            idVideoAtual = new URLSearchParams(window.location.search).get('v');
+            if (!idVideoAtual) return;
 
-            const { data: video } = await supabaseClient.from('videos').select('*').eq('id', vId).single();
+            const { data: video } = await supabaseClient.from('videos').select('*').eq('id', idVideoAtual).single();
             if (!video) return;
             videoData = video;
 
-            // --- AQUI É ONDE O PLAYER É CONFIGURADO (Teste com Oceans) ---
-            const url = "https://vjs.zencdn.net/v/oceans.mp4"; 
-            
-            const vjs = document.getElementById('lirpe-player');
-            vjs.style.display = 'block'; // Mostra o player
-            
-            if (!player) {
-                player = videojs('lirpe-player');
-            }
-            
+            // Configura player (exemplo com Oceans)
+            const url = video.url || "https://vjs.zencdn.net/v/oceans.mp4"; 
+            player = videojs('lirpe-player');
             player.src({ src: url, type: 'video/mp4' });
-            // -----------------------------------------------------------
 
             document.getElementById('videoTitle').innerText = video.titulo;
-            document.getElementById('videoDesc').innerText = video.descricao;
+            document.getElementById('videoDesc').innerText = video.descricao || "";
             document.getElementById('videoAuthor').innerText = video.autor;
             document.getElementById('videoAuthor').href = `canais.html?user=${encodeURIComponent(video.autor)}`;
-            document.getElementById('videoViews').innerText = video.visualizacoes;
+            document.getElementById('videoViews').innerText = video.visualizacoes || 0;
             
             atualizarEstrelas(video);
-            carregarComentarios(vId);
+            carregarComentarios(idVideoAtual);
         }
 
         function atualizarEstrelas(v) {
@@ -128,6 +124,7 @@
             document.querySelectorAll('.star-item').forEach(s => {
                 s.style.color = s.dataset.value <= media ? '#FFCC00' : '#CCCCCC';
             });
+            document.getElementById('ratingStatus').innerText = `(Média: ${media}/5)`;
         }
 
         async function salvarAvaliacao(val) {
@@ -139,7 +136,8 @@
         }
 
         async function postarComentario() {
-            const texto = document.getElementById('commentInput').value;
+            const texto = document.getElementById('commentInput').value.trim();
+            if (!texto) return alert("Digite um comentário!");
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (!session) return alert("Faça login!");
             await supabaseClient.from('comentarios').insert([{ video_id: idVideoAtual, autor: session.user.email, texto }]);
@@ -147,11 +145,14 @@
         }
 
         async function carregarComentarios(id) {
-            const { data } = await supabaseClient.from('comentarios').select('*').eq('video_id', id);
-            document.getElementById('commentsList').innerHTML = data?.map(c => `<p><b>${c.autor}:</b> ${c.texto}</p>`).join('') || '';
+            const { data } = await supabaseClient.from('comentarios').select('*').eq('video_id', id).order('id', { ascending: false });
+            document.getElementById('commentsList').innerHTML = data?.map(c => `<p><b>${c.autor}:</b> ${c.texto}</p>`).join('') || '<p>Nenhum comentário ainda.</p>';
         }
 
-        function redirecionarParaCanal() { location.href = "canais.html"; }
+        function redirecionarParaCanal(e) { 
+            e.preventDefault(); 
+            location.href = "canais.html"; 
+        }
     </script>
 </body>
 </html>

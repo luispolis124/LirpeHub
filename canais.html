@@ -14,7 +14,7 @@
         .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
         .btn-delete { background: #CC0000; color: white; border: none; width: 100%; cursor: pointer; padding: 5px; margin-top: 5px; font-size: 11px; }
         
-        /* Estilos para Edi��o */
+        /* Estilos para Edição */
         .edit-icon { cursor: pointer; color: #555; font-size: 14px; margin-left: 5px; }
         .edit-icon:hover { color: #000; }
         .edit-box { display: none; margin-top: 5px; background: #eee; padding: 5px; }
@@ -31,10 +31,10 @@
             <span class="slogan">Broadcast Yourself</span>
         </div>
         <nav class="nav-links">
-            <a href="index.html">P�gina Inicial</a> | 
+            <a href="index.html">Página Inicial</a> | 
             <a href="canais.html" class="active">Canais</a> |
-            <a href="enviar.html" style="color: #CC0000; font-weight: bold;">Enviar V�deo</a>
-            <span id="linkModeracao" style="display:none;"> | <a href="moderacao.html" style="color: purple;">Modera��o</a></span>
+            <a href="enviar.html" style="color: #CC0000; font-weight: bold;">Enviar Vídeo</a>
+            <span id="linkModeracao" style="display:none;"> | <a href="moderacao.html" style="color: purple;">Moderação</a></span>
         </nav>
     </header>
 
@@ -43,19 +43,19 @@
             <div class="channel-avatar" id="canalAvatar">?</div>
             <div class="channel-info">
                 <h2 id="canalNome">Carregando...</h2>
-                <button id="btnInscricao" onclick="toggleInscricao()" style="display:none;">Carregando...</button>
+                <button id="btnInscricao" style="display:none;">Carregando...</button>
                 
                 <div id="statusDono" style="display: none; margin-top:10px;">
-                    <span class="owner-badge">Seu Espa�o (Dono)</span>
+                    <span class="owner-badge">Seu Espaço (Dono)</span>
                 </div>
             </div>
         </div>
 
         <div style="background: #FFF; border: 1px solid #CCC; padding: 10px; margin-bottom: 20px;">
             <p id="canalDescricao" style="font-style: italic;">Carregando...</p>
-            <span id="btnEditarDesc" class="edit-icon" style="display:none;" onclick="toggleEdit('descEditBox')"> Editar descri��o</span>
+            <span id="btnEditarDesc" class="edit-icon" style="display:none;" onclick="toggleEdit('descEditBox')">✎ Editar descrição</span>
             <div id="descEditBox" class="edit-box">
-                <input type="text" id="inputNovaDesc" placeholder="Nova descri��o...">
+                <input type="text" id="inputNovaDesc" placeholder="Nova descrição...">
                 <button onclick="salvarDescricao()">Salvar</button>
             </div>
         </div>
@@ -63,7 +63,7 @@
         <div class="main-content-layout">
             <div class="video-column">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 id="secaoTitulo">V�deos do Canal</h3>
+                    <h3 id="secaoTitulo">Vídeos do Canal</h3>
                     <select id="ordemSelect" onchange="carregarCanal()">
                         <option value="desc">Mais recentes</option>
                         <option value="asc">Mais antigos</option>
@@ -80,8 +80,9 @@
     <script>
         let supabaseClient = null;
 
-        window.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+            document.getElementById('btnInscricao').addEventListener('click',toggleInscricao);
             await carregarCanal();
         });
 
@@ -93,11 +94,12 @@
         async function carregarCanal() {
             const urlParams = new URLSearchParams(window.location.search);
             let canalAlvo = urlParams.get('user');
-            if (!canalAlvo) return;
+            if (!canalAlvo){ document.getElementById('canalNome').innerText='Canal não encontrado'; return; }
 
             const ordem = document.getElementById('ordemSelect').value;
             const { data: { session } } = await supabaseClient.auth.getSession();
-            const ehDono = session && session.user.user_metadata?.display_name === canalAlvo;
+            const nomeUsuario = session?.user.user_metadata?.display_name || session?.user.email.split('@')[0];
+            const ehDono = nomeUsuario === canalAlvo;
 
             document.getElementById('canalNome').innerText = canalAlvo;
             document.getElementById('canalAvatar').innerText = canalAlvo.charAt(0).toUpperCase();
@@ -115,7 +117,7 @@
                         <a href="watch.html?v=${v.id}"><img src="${v.thumb}" style="width:100%"></a>
                         <div style="margin-top:5px;">
                             ${ehDono ? 
-                                `<span>${v.titulo}</span> <span class="edit-icon" onclick="toggleEdit('edit-tit-${v.id}')"></span>
+                                `<span>${v.titulo}</span> <span class="edit-icon" onclick="toggleEdit('edit-tit-${v.id}')">✎</span>
                                  <div id="edit-tit-${v.id}" class="edit-box">
                                     <input type="text" id="tit-${v.id}" value="${v.titulo}">
                                     <button onclick="editarTitulo('${v.id}')">OK</button>
@@ -137,20 +139,29 @@
         }
 
         async function editarTitulo(id) {
-            const novoTitulo = document.getElementById('tit-' + id).value;
+            const novoTitulo = document.getElementById('tit-' + id).value.trim();
+            if (!novoTitulo) {
+                alert("Digite um título válido.");
+                return;
+            }
             await supabaseClient.from('videos').update({ titulo: novoTitulo }).eq('id', id);
             location.reload();
         }
 
         async function deletarVideo(id) {
-            if (!confirm("Tem certeza?")) return;
+            if (!confirm("Tem certeza que deseja deletar este vídeo?")) return;
             await supabaseClient.from('videos').delete().eq('id', id);
             location.reload();
         }
 
         async function salvarDescricao() {
-            const novaDesc = document.getElementById('inputNovaDesc').value;
+            const novaDesc = document.getElementById('inputNovaDesc').value.trim();
+            if (!novaDesc) {
+                alert("Digite uma descrição válida.");
+                return;
+            }
             const canalAlvo = new URLSearchParams(window.location.search).get('user');
+            // ⚠️ Melhor seria ter uma tabela 'canais'. Aqui atualiza todos os vídeos do autor.
             await supabaseClient.from('videos').update({ descricao: novaDesc }).eq('autor', canalAlvo);
             location.reload();
         }
@@ -159,19 +170,32 @@
             if (!email) return;
             const btn = document.getElementById('btnInscricao');
             btn.style.display = 'inline-block';
-            const { data } = await supabaseClient.from('inscricoes').select('*').eq('seguidor_email', email).eq('canal_seguido', canalAlvo);
-            btn.innerText = data.length > 0 ? " Inscrito" : "+ Inscrever-se";
+            const { data } = await supabaseClient
+                .from('inscricoes')
+                .select('*')
+                .eq('seguidor_email', email)
+                .eq('canal_seguido', canalAlvo);
+            btn.innerText = data.length > 0 ? "✔ Inscrito" : "+ Inscrever-se";
             btn.dataset.inscrito = data.length > 0 ? "true" : "false";
         }
 
         async function toggleInscricao() {
             const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session) return alert("Fa�a login!");
+            if (!session) return alert("Faça login!");
             const canalAlvo = new URLSearchParams(window.location.search).get('user');
             const jaInscrito = document.getElementById('btnInscricao').dataset.inscrito === "true";
             
-            if (jaInscrito) await supabaseClient.from('inscricoes').delete().eq('seguidor_email', session.user.email).eq('canal_seguido', canalAlvo);
-            else await supabaseClient.from('inscricoes').insert([{ seguidor_email: session.user.email, canal_seguido: canalAlvo }]);
+            if (jaInscrito) {
+                await supabaseClient
+                    .from('inscricoes')
+                    .delete()
+                    .eq('seguidor_email', session.user.email)
+                    .eq('canal_seguido', canalAlvo);
+            } else {
+                await supabaseClient
+                    .from('inscricoes')
+                    .insert([{ seguidor_email: session.user.email, canal_seguido: canalAlvo }]);
+            }
             location.reload();
         }
     </script>

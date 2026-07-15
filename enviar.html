@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LirpeHub - Enviar Vídeo</title>
     <link rel="stylesheet" href="styles/style.css">
+    <style>
+        /* Ajuste visual para botão desabilitado */
+        .btn-classic:disabled {
+            background: #DDD;
+            color: #999;
+            cursor: not-allowed;
+        }
+        @media (max-width: 600px) {
+            .video-details-box { font-size: 12px; }
+            input, textarea { font-size: 12px; }
+        }
+    </style>
 </head>
 <body>
     <header class="main-header">
@@ -28,13 +40,13 @@
             
             <form id="uploadForm">
                 <label>Seu Apelido/Canal:</label><br>
-                <input type="text" id="autor" value="LirpeFelipovi" required style="width: 100%; margin-bottom: 10px; box-sizing: border-box;"><br>
+                <input type="text" id="autor" required style="width: 100%; margin-bottom: 10px; box-sizing: border-box;"><br>
 
                 <label>Título do Vídeo:</label><br>
-                <input type="text" id="titulo" value="Meu primeiro vídeo de sono de trabalho" required style="width: 100%; margin-bottom: 10px; box-sizing: border-box;"><br>
+                <input type="text" id="titulo" required style="width: 100%; margin-bottom: 10px; box-sizing: border-box;"><br>
 
                 <label>Descrição do Vídeo:</label><br>
-                <textarea id="videoDescricao" style="width: 100%; height: 80px; margin-bottom: 10px; box-sizing: border-box; resize: vertical;">Sejam bem-vindos ao meu canal aqui no Brasil! Venha conhecer tudo o que estou criando. Sou o criador do LirpeHub e autista nível 2 de suporte. Esse é um vídeo sobre o meu sono de trabalho. O que você achou? Deixe sua opinião nos comentários, ela é muito importante para o desenvolvimento da plataforma!</textarea><br>
+                <textarea id="videoDescricao" style="width: 100%; height: 80px; margin-bottom: 10px; box-sizing: border-box; resize: vertical;"></textarea><br>
 
                 <div style="margin-bottom: 15px; background: #EAEAEA; padding: 8px; border: 1px solid #CCCCCC;">
                     <label style="margin-right: 15px; font-size: 12px;">
@@ -61,8 +73,8 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="js/config.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
     
     <script>
         let supabaseClient = null;
@@ -76,6 +88,8 @@
                 
                 document.getElementById('loadingSection').style.display = 'none';
                 document.getElementById('uploadContainer').style.display = 'block';
+            } else {
+                document.getElementById('loadingSection').innerHTML = "<p style='color:red;'>Erro: Configuração não carregada.</p>";
             }
         });
 
@@ -84,25 +98,24 @@
             document.getElementById('fileInputSection').style.display = (type === 'file') ? 'block' : 'none';
         }
 
-        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+                document.getElementById('uploadForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const status = document.getElementById('statusMessage');
             const submitBtn = e.target.querySelector('button[type="submit"]');
             
-            // Trava o botão para evitar clique duplo
             submitBtn.disabled = true;
             status.innerText = "Publicando...";
 
-            const autor = document.getElementById('autor').value;
-            const titulo = document.getElementById('titulo').value;
-            const descricao = document.getElementById('videoDescricao').value;
+            const autor = document.getElementById('autor').value.trim();
+            const titulo = document.getElementById('titulo').value.trim();
+            const descricao = document.getElementById('videoDescricao').value.trim();
             const uploadType = document.querySelector('input[name="uploadType"]:checked').value;
 
             let finalEmbedUrl = "";
             let finalThumbUrl = "";
 
             if (uploadType === 'youtube') {
-                const link = document.getElementById('ytLink').value;
+                const link = document.getElementById('ytLink').value.trim();
                 const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
                 const match = link.match(regExp);
                 const id = (match && match[2].length === 11) ? match[2] : null;
@@ -121,9 +134,9 @@
             }
 
             const novoVideo = { 
-                titulo: titulo, 
-                autor: autor, 
-                descricao: descricao, 
+                titulo, 
+                autor, 
+                descricao, 
                 visualizacoes: "0", 
                 thumb: finalThumbUrl, 
                 embedurl: finalEmbedUrl,
@@ -131,21 +144,23 @@
                 total_rating: 0
             };
 
-            const { error } = await supabaseClient.from('videos').insert([novoVideo]);
+            try {
+                const { error } = await supabaseClient.from('videos').insert([novoVideo]);
+                if (error) throw error;
 
-            if (error) {
-                status.innerText = "Erro ao publicar: " + error.message;
-                submitBtn.disabled = false;
-            } else {
                 status.style.color = "green";
-                status.innerText = "Vídeo publicado com sucesso! Pode enviar outro.";
-                
-                // Limpa o formulário e libera para nova postagem
+                status.innerText = "Vídeo publicado com sucesso!";
                 document.getElementById('uploadForm').reset();
+            } catch (err) {
+                status.style.color = "red";
+                status.innerText = "Erro ao publicar: " + err.message;
+            } finally {
+                // Aqui está o bloco finally correto e limpo
                 submitBtn.disabled = false;
-                
-                // Remove o aviso de sucesso após 3 segundos
-                setTimeout(() => { status.innerText = ""; status.style.color = ""; }, 3000);
+                setTimeout(() => { 
+                    status.innerText = ""; 
+                    status.style.color = ""; 
+                }, 3000);
             }
         });
     </script>

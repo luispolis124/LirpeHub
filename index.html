@@ -2,17 +2,17 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="google-site-verification" content="nQqVttWHqwbiUwB7IXhlREa_PWGulHkZfptQUQ9Otzs" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LirpeHub - Broadcast Yourself</title>
     <link rel="stylesheet" href="styles/style.css">
     <style>
+        body { font-family: Arial, sans-serif; background: #fff; margin: 0; padding: 0; }
         .main-content-layout { display: flex; gap: 20px; max-width: 1000px; margin: 15px auto; padding: 0 10px; box-sizing: border-box; flex-direction: row; }
         .video-column { flex: 3; min-width: 0; }
-        .sidebar-column { flex: 1; min-width: 200px; font-size: 12px; font-family: Arial, sans-serif; }
+        .sidebar-column { flex: 1; min-width: 200px; font-size: 12px; }
         .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; width: 100%; }
-        .video-card { border: 1px solid #ccc; padding: 5px; background: #fff; display: flex; flex-direction: column; }
+        .video-card { border: 1px solid #ccc; padding: 5px; background: #fff; display: flex; flex-direction: column; border-radius: 4px; box-shadow: 1px 1px 3px rgba(0,0,0,0.1); }
         .video-card img { width: 100%; height: 120px; object-fit: cover; }
         .video-card h3 { font-size: 13px; margin: 5px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .video-card p { font-size: 11px; color: #666; margin: 0; }
@@ -20,28 +20,35 @@
         .tag-link { color: #0033CC; text-decoration: underline; cursor: pointer; margin-right: 8px; display: inline-block; padding: 1px 4px; font-size: 12px; }
         .tag-link:hover { background-color: #E6E6E6; text-decoration: none; }
         .tag-link.active-tag { background-color: #FFCC00; color: #000; text-decoration: none; font-weight: bold; border: 1px dashed #333; }
-        @media (max-width: 768px) { .main-content-layout { flex-direction: column; } .search-bar-2005 input { width: 70%; } .sidebar-column { width: 100%; box-sizing: border-box; } }
+        header { background: #F8F8F8; border-bottom: 1px solid #CCC; padding: 10px; }
+        footer { background: #F8F8F8; border-top: 1px solid #CCC; text-align: center; padding: 10px; font-size: 12px; }
+        .news-ticker { background: #FFFAE6; border-bottom: 1px solid #CCC; padding: 5px; font-size: 12px; }
+        @media (max-width: 768px) { 
+            .main-content-layout { flex-direction: column; } 
+            .search-bar-2005 input { width: 70%; } 
+            .sidebar-column { width: 100%; box-sizing: border-box; } 
+        }
     </style>
 </head>
 <body>
 
     <header class="main-header">
         <div class="logo-container">
-            <a href="index.html" class="logo" style="text-decoration: none;">
+            <a href="index.html" class="logo" style="text-decoration: none; font-size: 20px; font-weight: bold;">
                 <span class="lirpe">Lirpe</span><span class="hub">Hub</span>
             </a>
-            <span class="slogan">Broadcast Yourself</span>
+            <span class="slogan" style="margin-left: 10px; font-size: 12px; color: #666;">Broadcast Yourself</span>
         </div>
         
         <div class="search-bar-2005" style="margin: 10px 0; text-align: center;">
             <input type="text" id="searchInput" placeholder="Pesquisar vídeos...">
-            <button class="btn-classic" onclick="buscarVideos()" style="padding: 2px 10px; font-size: 11px; cursor: pointer;">Procurar</button>
+            <button class="btn-classic" id="btnPesquisar" style="padding: 2px 10px; font-size: 11px; cursor: pointer;">Procurar</button>
         </div>
 
-        <nav class="nav-links" id="mainNav">
+        <nav class="nav-links" id="mainNav" style="text-align: center; font-size: 12px;">
             <a href="index.html" class="active">Página Inicial</a> | 
             <a href="#">Vídeos</a> | 
-            <a href="javascript:void(0);" id="navCanaisLink" onclick="redirecionarParaCanal()">Canais</a> |
+            <a href="#" id="navCanaisLink" onclick="redirecionarParaCanal(event)">Canais</a> |
             <a href="enviar.html" style="color: #CC0000; font-weight: bold;">Enviar Vídeo</a>
             <span id="authControl"></span>
         </nav>
@@ -54,18 +61,20 @@
     </div>
 
     <div class="main-content-layout">
-        <div class="video-column">
+        <main class="video-column">
             <h3 style="background: #EAEAEA; border: 1px solid #CCCCCC; padding: 5px; margin: 0 0 15px 0; font-size: 13px; color: #333; display: flex; justify-content: space-between; align-items: center;">
                 <span id="secaoTituloVideo">📺 Vídeos Sendo Assistidos Agora</span>
-                <a href="javascript:void(0);" id="limparFiltro" style="font-size: 11px; color: #CC0000; display: none; text-decoration: none;">[Ver Todos]</a>
+                <a href="#" id="limparFiltro" style="font-size: 11px; color: #CC0000; display: none; text-decoration: none;">[Ver Todos]</a>
             </h3>
-            <main class="video-grid" id="videoContainer"></main>
-        </div>
+            <section class="video-grid" id="videoContainer"></section>
+        </main>
 
         <aside class="sidebar-column">
             <div style="border: 1px solid #CCD2E0; background: #F0F3F8; padding: 10px; margin-bottom: 15px;">
                 <h4 style="margin: 0 0 8px 0; color: #0033CC; border-bottom: 1px solid #CCD2E0; padding-bottom: 3px; font-size: 12px;">⭐ Lirpeiros Recentes</h4>
-                <ul id="dynamicAuthors" style="list-style: none; padding: 0; margin: 0; line-height: 1.6;"><li style="color: #666; font-style: italic;">Carregando usuários...</li></ul>
+                <ul id="dynamicAuthors" style="list-style: none; padding: 0; margin: 0; line-height: 1.6;">
+                    <li style="color: #666; font-style: italic;">Carregando usuários...</li>
+                </ul>
             </div>
 
             <div style="border: 1px solid #CCCCCC; background: #FAFAFA; padding: 10px;">
@@ -91,11 +100,12 @@
     <script src="js/main.js"></script>
 
     <script>
+        // Controle de autenticação
         window.addEventListener('DOMContentLoaded', async () => {
             const authControl = document.getElementById('authControl');
-            if (typeof CONFIG !== 'undefined') {
-                const supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-                const { data: { session } } = await supabase.auth.getSession();
+            if (typeof CONFIG !== 'undefined' && CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY) {
+                window.supabaseClient = window.supabaseClient || supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+                const { data: { session } } = await window.supabaseClient.auth.getSession();
                 
                 if (session) {
                     authControl.innerHTML = ' | <a href="logout.html" style="color: #CC0000; font-weight: bold;">Sair</a>';
@@ -105,32 +115,57 @@
             }
         });
 
-        async function redirecionarParaCanal() {
-            if (typeof CONFIG === 'undefined') { window.location.href = "login.html"; return; }
-            const tempClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-            const { data: { session } } = await tempClient.auth.getSession();
-            if (session) window.location.href = `canais.html?user=${encodeURIComponent(session.user.user_metadata?.display_name || session.user.email.split('@')[0])}`;
-            else window.location.href = "login.html";
+        // Redirecionamento para canais
+        async function redirecionarParaCanal(e) {
+            e.preventDefault();
+            if (typeof CONFIG === 'undefined' || !CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY) { 
+                window.location.href = "login.html"; 
+                return; 
+            }
+            window.supabaseClient = window.supabaseClient || supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+            const { data: { session } } = await window.supabaseClient.auth.getSession();
+            if (session) {
+                const nomeUsuario = session.user.user_metadata?.display_name || session.user.email.split('@')[0];
+                window.location.href = `canais.html?user=${encodeURIComponent(nomeUsuario)}`;
+            } else {
+                window.location.href = "login.html";
+            }
         }
 
+        // Função de busca de vídeos (placeholder)
+        function buscarVideos(query = '') {
+            const videoContainer = document.getElementById('videoContainer');
+            videoContainer.innerHTML = `<p style="font-size:12px;color:#666;">Buscando vídeos: <strong>${query}</strong>...</p>`;
+            // Aqui você pode integrar com Supabase ou API futuramente
+        }
+
+        // Tags
         document.querySelectorAll('.tag-link').forEach(tag => {
             tag.addEventListener('click', function() {
                 document.querySelectorAll('.tag-link').forEach(t => t.classList.remove('active-tag'));
                 this.classList.add('active-tag');
                 const tagValue = this.getAttribute('data-tag');
                 document.getElementById('searchInput').value = tagValue;
-                if(typeof buscarVideos === 'function') buscarVideos(tagValue);
+                buscarVideos(tagValue);
                 document.getElementById('secaoTituloVideo').innerText = "📺 Vídeos com a tag: " + tagValue;
                 document.getElementById('limparFiltro').style.display = 'inline';
             });
         });
 
-        document.getElementById('limparFiltro').addEventListener('click', function() {
+        // Pesquisa
+        document.getElementById('btnPesquisar').addEventListener('click',()=>buscarVideos(document.getElementById('searchInput').value));
+        document.getElementById('searchInput').addEventListener('keydown',e=>{
+            if(e.key==='Enter') buscarVideos(document.getElementById('searchInput').value);
+        });
+
+        // Limpar filtro
+        document.getElementById('limparFiltro').addEventListener('click', function(e) {
+            e.preventDefault();
             document.getElementById('searchInput').value = '';
             document.querySelectorAll('.tag-link').forEach(t => t.classList.remove('active-tag'));
             this.style.display = 'none';
             document.getElementById('secaoTituloVideo').innerText = "📺 Vídeos Sendo Assistidos Agora";
-            if(typeof buscarVideos === 'function') buscarVideos('');
+            buscarVideos('');
         });
     </script>
 </body>

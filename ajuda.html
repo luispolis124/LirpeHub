@@ -5,9 +5,30 @@
     <title>Ajuda - LirpeHub</title>
     <link rel="stylesheet" href="styles/style.css">
     <style>
-        .page-content { max-width: 800px; margin: 20px auto; padding: 20px; border: 1px solid #CCCCCC; background: #F9F9F9; }
+        .page-content { 
+            max-width: 800px; 
+            margin: 20px auto; 
+            padding: 20px; 
+            border: 1px solid #CCCCCC; 
+            background: #F9F9F9; 
+            line-height: 1.6; 
+            font-family: Arial, sans-serif;
+        }
+        h1 { 
+            color: #CC0000; 
+            border-bottom: 2px solid #CC0000; 
+            padding-bottom: 5px; 
+        }
         .faq-item { margin-bottom: 20px; }
         .faq-item h3 { color: #0033CC; margin-bottom: 5px; }
+        .back-link { 
+            display: inline-block; 
+            margin-top: 20px; 
+            color: #0033CC; 
+            text-decoration: none; 
+            font-weight: bold; 
+        }
+        .back-link:hover { color: #CC0000; }
     </style>
 </head>
 <body>
@@ -17,6 +38,13 @@
                 <span class="lirpe">Lirpe</span><span class="hub">Hub</span>
             </a>
         </div>
+        <nav class="nav-links">
+            <a href="index.html">Página Inicial</a> | 
+            <a href="enviar.html">Enviar Vídeo</a> | 
+            <a href="canais.html">Canais</a> | 
+            <a href="sobre.html">Sobre</a> | 
+            <a href="ajuda.html" class="active">Ajuda</a>
+        </nav>
     </header>
 
     <main class="page-content">
@@ -24,21 +52,30 @@
         
         <div class="faq-item">
             <h3>Como envio um vídeo?</h3>
-            <p>Basta fazer login na sua conta e clicar no botão "Enviar Vídeo" no topo da página. Certifique-se de que o link do vídeo seja um embed compatível.</p>
+            <p>Basta fazer login na sua conta e clicar no botão <strong>"Enviar Vídeo"</strong> no topo da página. Você pode escolher entre inserir um link do YouTube ou enviar um arquivo de vídeo compatível.</p>
         </div>
 
         <div class="faq-item">
             <h3>Posso denunciar conteúdo impróprio?</h3>
-            <p>Sim. Se encontrar algo que viole nossas diretrizes, clique no botão "Denunciar Conteúdo" abaixo do player de qualquer vídeo.</p>
+            <p>Sim. Se encontrar algo que viole nossas diretrizes, clique no botão <strong>"Denunciar Conteúdo"</strong> abaixo do player de qualquer vídeo. Nossa equipe de moderação irá analisar sua denúncia.</p>
         </div>
 
         <div class="faq-item">
             <h3>Como edito meu canal?</h3>
-            <p>Acesse a seção "Canais" no menu superior. Lá, você encontrará a opção de gerenciar suas informações e ver seus envios.</p>
+            <p>Acesse a seção <strong>"Canais"</strong> no menu superior. Lá, você encontrará opções para editar a descrição, alterar títulos dos vídeos e gerenciar seus envios.</p>
         </div>
 
-        <p>Ainda precisa de ajuda? Entre em contato com nossa equipe de suporte através do formulário de contato disponível no rodapé da página inicial.</p>
-        <p><a href="index.html">« Voltar para a página inicial</a></p>
+        <div class="faq-item">
+            <h3>O que acontece se eu receber um strike?</h3>
+            <p>Strikes são aplicados quando há violação das regras. Após 3 strikes, sua conta pode ser suspensa. Você será notificado por e-mail sempre que um strike for aplicado.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>Como entro em contato com o suporte?</h3>
+            <p>Você pode usar o formulário de contato disponível no rodapé da página inicial ou enviar um e-mail para nossa equipe de suporte.</p>
+        </div>
+
+        <a href="index.html" class="back-link">« Voltar para a página inicial</a>
     </main>
 </body>
 </html>

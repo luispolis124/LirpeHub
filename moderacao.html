@@ -57,78 +57,94 @@
     <script src="js/config.js"></script>
     
     <script>
-        let supabaseClient = null;
+    let supabaseClient = null;
 
-        window.addEventListener('DOMContentLoaded', async () => {
-            supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-            await carregarDenuncias();
-        });
+    window.addEventListener('DOMContentLoaded', async () => {
+        supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+        await carregarDenuncias();
+    });
 
-        async function carregarDenuncias() {
-            const tbody = document.getElementById('listaDenuncias');
-            let { data: videos } = await supabaseClient
-                .from('videos')
-                .select('*')
-                .eq('denunciado', true);
+    // Função principal para carregar denúncias
+    async function carregarDenuncias() {
+        const tbody = document.getElementById('listaDenuncias');
+        let { data: videos, error } = await supabaseClient
+            .from('videos')
+            .select('*')
+            .eq('denunciado', true);
 
-            if (!videos || videos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Nenhuma denúncia pendente!</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = videos.map(v => `
-                <tr>
-                    <td><img src="${v.thumb}" class="mod-thumb"></td>
-                    <td><strong>${v.titulo}</strong><br>Autor: ${v.autor}<br>Email: ${v.email_autor || 'N/A'}</td>
-                    <td>${v.motivo_denuncia}</td>
-                    <td>
-                        <button class="btn-action" onclick="ignorarDenuncia('${v.id}')">Aprovar</button>
-                        <button class="btn-action" onclick="deletarVideo('${v.id}')">Excluir</button>
-                        <button class="btn-action btn-strike" onclick="aplicarStrike('${v.email_autor}', '${v.id}')">Dar Strike</button>
-                        <button class="btn-action btn-copy" onclick="marcarCopyright('${v.id}')">Copyright</button>
-                    </td>
-                </tr>
-            `).join('');
+        if (error) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Erro ao carregar denúncias: ${error.message}</td></tr>`;
+            return;
         }
 
-        async function deletarVideo(id) {
-            if (!confirm("Excluir permanentemente?")) return;
-            await supabaseClient.from('videos').delete().eq('id', id);
-            carregarDenuncias();
+        if (!videos || videos.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Nenhuma denúncia pendente!</td></tr>';
+            return;
         }
 
-        async function ignorarDenuncia(id) {
-            await supabaseClient.from('videos').update({ denunciado: false }).eq('id', id);
-            carregarDenuncias();
-        }
+        tbody.innerHTML = videos.map(v => `
+            <tr>
+                <td><img src="${v.thumb}" class="mod-thumb"></td>
+                <td><strong>${v.titulo}</strong><br>Autor: ${v.autor}<br>Email: ${v.email_autor || 'N/A'}</td>
+                <td>${v.motivo_denuncia || 'Sem motivo informado'}</td>
+                <td>
+                    <button class="btn-action" onclick="ignorarDenuncia('${v.id}')">Liberar vídeo</button>
+                    <button class="btn-action" onclick="deletarVideo('${v.id}')">Excluir</button>
+                    <button class="btn-action btn-strike" onclick="aplicarStrike('${v.email_autor}', '${v.id}')">✔ Strike</button>
+                    <button class="btn-action btn-copy" onclick="marcarCopyright('${v.id}')">⚠️ Copyright</button>
+                </td>
+            </tr>
+        `).join('');
+    }
 
-        // SISTEMA DE STRIKE
-        async function aplicarStrike(email, videoId) {
-            if (!email) return alert("Erro: Email do autor não encontrado.");
-            
-            // Busca strikes atuais
-            let { data: user } = await supabaseClient.from('usuarios').select('strikes').eq('email', email).single();
-            let total = (user ? user.strikes : 0) + 1;
+    async function deletarVideo(id) {
+        if (!confirm("Excluir permanentemente?")) return;
+        await supabaseClient.from('videos').delete().eq('id', id);
+        carregarDenuncias();
+    }
 
+    async function ignorarDenuncia(id) {
+        await supabaseClient.from('videos').update({ denunciado: false }).eq('id', id);
+        carregarDenuncias();
+    }
+
+    // SISTEMA DE STRIKE
+    async function aplicarStrike(email, videoId) {
+        if (!email) return alert("Erro: Email do autor não encontrado.");
+        
+        // Busca strikes atuais
+        let { data: user } = await supabaseClient
+            .from('usuarios')
+            .select('strikes')
+            .eq('email', email)
+            .single();
+
+        let total = (user ? user.strikes : 0) + 1;
+
+        if (!user) {
+            await supabaseClient.from('usuarios').insert([{ email, strikes: 1 }]);
+        } else {
             await supabaseClient.from('usuarios').update({ strikes: total }).eq('email', email);
-            alert("Strike aplicado! Total: " + total);
-            await deletarVideo(videoId);
         }
 
-        // SISTEMA DE COPYRIGHT
-        async function marcarCopyright(id) {
-            const detentor = prompt("Nome do detentor do copyright:");
-            if (!detentor) return;
-            
-            await supabaseClient.from('videos').update({ 
-                denunciado: false, 
-                copyright_strike: true, 
-                detentor_copyright: detentor 
-            }).eq('id', id);
-            
-            alert("Vídeo marcado como Copyright Strike.");
-            carregarDenuncias();
-        }
-    </script>
+        alert("Strike aplicado! Total: " + total);
+        await deletarVideo(videoId);
+    }
+
+    // SISTEMA DE COPYRIGHT
+    async function marcarCopyright(id) {
+        const detentor = prompt("Nome do detentor do copyright:");
+        if (!detentor) return;
+        
+        await supabaseClient.from('videos').update({ 
+            denunciado: false, 
+            copyright_strike: true, 
+            detentor_copyright: detentor 
+        }).eq('id', id);
+        
+        alert("Vídeo marcado como Copyright Strike.");
+        carregarDenuncias();
+    }
+</script>
 </body>
 </html>
