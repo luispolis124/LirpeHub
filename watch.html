@@ -10,16 +10,13 @@
         .watch-container { display: flex; gap: 20px; max-width: 1000px; margin: 15px auto; padding: 0 10px; box-sizing: border-box; }
         .main-video-section { flex: 3; min-width: 0; }
         .sidebar-section { flex: 1; min-width: 260px; }
-        /* Box do player agora adaptada para o Video.js */
-        .video-player-box { position: relative; width: 100%; background: #000; border: 1px solid #CCCCCC; }
-        .video-js { width: 100%; height: auto; aspect-ratio: 16/9; }
+        .video-player-box { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border: 1px solid #CCCCCC; overflow: hidden; }
+        #videoPlayerIframe { width: 100%; height: 100%; border: none; }
+        .video-js { width: 100%; height: 100%; }
         .video-details-box { border: 1px solid #CCD2E0; background: #F0F3F8; padding: 10px; margin-top: 10px; font-size: 12px; }
-        .video-details-box h1 { font-size: 16px; margin: 0 0 10px 0; color: #333; }
-        .video-meta-row { display: flex; justify-content: space-between; border-bottom: 1px solid #CCD2E0; padding-bottom: 8px; margin-bottom: 8px; }
-        .rating-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
         .rating-box { display: flex; align-items: center; gap: 5px; }
-        .star-item { font-size: 16px; color: #CCCCCC; cursor: pointer; }
-        .btn-flag { background: #FCE4D6; border: 1px solid #C65911; color: #C65911; font-size: 10px; font-weight: bold; padding: 2px 6px; cursor: pointer; }
+        .star-item { font-size: 16px; color: #CCCCCC; cursor: pointer; transition: color 0.1s; }
+        .btn-flag { background: #FCE4D6; border: 1px solid #C65911; color: #C65911; font-weight: bold; padding: 2px 6px; cursor: pointer; }
         @media (max-width: 768px) { .watch-container { flex-direction: column; } }
     </style>
 </head>
@@ -40,12 +37,11 @@
 
     <div class="container watch-container">
         <main class="main-video-section">
-            <div class="video-player-box">
-                <video id="lirpe-player" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto">
-                    <source src="" type="application/x-mpegURL">
-                </video>
+            <div class="video-player-box" id="playerContainer">
+                <iframe id="videoPlayerIframe" src="" style="display:none;" allowfullscreen></iframe>
+                <video id="lirpe-player" class="video-js vjs-default-skin vjs-big-play-centered" controls style="display:none;"></video>
             </div>
-            
+
             <div class="video-details-box">
                 <h1 id="videoTitle">Carregando...</h1>
                 <p id="videoDesc"></p>
@@ -53,18 +49,31 @@
                     <div>Adicionado por: <a href="#" id="videoAuthor">...</a></div>
                     <div><span id="videoViews">0</span> visualizações</div>
                 </div>
-                <button class="btn-flag" id="flagBtn"> Denunciar</button>
+                <div class="rating-row">
+                    <div class="rating-box">
+                        <span>Avaliação:</span>
+                        <div id="starsContainer" class="stars-container">
+                            <span class="star-item" data-value="5"></span>
+                            <span class="star-item" data-value="4"></span>
+                            <span class="star-item" data-value="3"></span>
+                            <span class="star-item" data-value="2"></span>
+                            <span class="star-item" data-value="1"></span>
+                        </div>
+                        <span id="ratingStatus">(Calculando...)</span>
+                    </div>
+                    <button class="btn-flag" id="flagBtn"> Denunciar</button>
+                </div>
             </div>
-            
+
             <div class="comments-section">
                 <h3>Comentários</h3>
-                <textarea id="commentInput" style="width: 100%; height: 50px;"></textarea>
-                <button id="postCommentBtn">Postar</button>
+                <textarea id="commentInput" placeholder="Escreva um comentário..."></textarea>
+                <button id="postCommentBtn">Postar Comentário</button>
                 <div id="commentsList"></div>
             </div>
         </main>
         <aside class="sidebar-section">
-            <h2>Vídeos Relacionados</h2>
+            <h2>Relacionados</h2>
             <div id="relatedVideosContainer"></div>
         </aside>
     </div>
@@ -73,13 +82,14 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script>
-        let supabaseClient = null;
-        let player = null;
+        let supabaseClient, idVideoAtual, videoData, player;
 
         window.addEventListener('DOMContentLoaded', async () => {
             supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-            player = videojs('lirpe-player');
             await iniciarPagina();
+            
+            document.getElementById('postCommentBtn').addEventListener('click', postarComentario);
+            document.querySelectorAll('.star-item').forEach(s => s.addEventListener('click', (e) => salvarAvaliacao(e.target.dataset.value)));
         });
 
         async function iniciarPagina() {
@@ -88,12 +98,20 @@
 
             const { data: video } = await supabaseClient.from('videos').select('*').eq('id', vId).single();
             if (!video) return;
+            videoData = video;
 
-            // Carrega a URL do Mux (ex: https://stream.mux.com/SEU_ID.m3u8)
-            player.src({
-                src: video.mux_url, 
-                type: 'application/x-mpegURL'
-            });
+            // --- AQUI É ONDE O PLAYER É CONFIGURADO (Teste com Oceans) ---
+            const url = "https://vjs.zencdn.net/v/oceans.mp4"; 
+            
+            const vjs = document.getElementById('lirpe-player');
+            vjs.style.display = 'block'; // Mostra o player
+            
+            if (!player) {
+                player = videojs('lirpe-player');
+            }
+            
+            player.src({ src: url, type: 'video/mp4' });
+            // -----------------------------------------------------------
 
             document.getElementById('videoTitle').innerText = video.titulo;
             document.getElementById('videoDesc').innerText = video.descricao;
@@ -101,17 +119,39 @@
             document.getElementById('videoAuthor').href = `canais.html?user=${encodeURIComponent(video.autor)}`;
             document.getElementById('videoViews').innerText = video.visualizacoes;
             
+            atualizarEstrelas(video);
             carregarComentarios(vId);
         }
 
-        async function carregarComentarios(vId) {
-            const { data } = await supabaseClient.from('comentarios').select('*').eq('video_id', vId);
+        function atualizarEstrelas(v) {
+            const media = Math.round((v.soma_rating || 0) / (v.total_rating || 1));
+            document.querySelectorAll('.star-item').forEach(s => {
+                s.style.color = s.dataset.value <= media ? '#FFCC00' : '#CCCCCC';
+            });
+        }
+
+        async function salvarAvaliacao(val) {
+            const { error } = await supabaseClient.from('videos').update({ 
+                soma_rating: (videoData.soma_rating || 0) + parseInt(val),
+                total_rating: (videoData.total_rating || 0) + 1 
+            }).eq('id', idVideoAtual);
+            if (!error) location.reload();
+        }
+
+        async function postarComentario() {
+            const texto = document.getElementById('commentInput').value;
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) return alert("Faça login!");
+            await supabaseClient.from('comentarios').insert([{ video_id: idVideoAtual, autor: session.user.email, texto }]);
+            location.reload();
+        }
+
+        async function carregarComentarios(id) {
+            const { data } = await supabaseClient.from('comentarios').select('*').eq('video_id', id);
             document.getElementById('commentsList').innerHTML = data?.map(c => `<p><b>${c.autor}:</b> ${c.texto}</p>`).join('') || '';
         }
 
-        function redirecionarParaCanal() {
-            window.location.href = "canais.html"; // Ajuste conforme sua necessidade
-        }
+        function redirecionarParaCanal() { location.href = "canais.html"; }
     </script>
 </body>
 </html>
