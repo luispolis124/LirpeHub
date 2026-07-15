@@ -14,7 +14,7 @@
         .video-details-box { border: 1px solid #CCD2E0; background: #F0F3F8; padding: 10px; margin-top: 10px; font-size: 12px; }
         .video-details-box h1 { font-size: 16px; margin: 0 0 10px 0; color: #333; }
         .video-meta-row { display: flex; justify-content: space-between; border-bottom: 1px solid #CCD2E0; padding-bottom: 8px; margin-bottom: 8px; }
-        .rating-row { display: flex; justify-content: space-between; align-items: center; }
+        .rating-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
         .rating-box { display: flex; align-items: center; gap: 5px; }
         .stars-container { display: inline-flex; flex-direction: row-reverse; cursor: pointer; }
         .star-item { font-size: 16px; color: #CCCCCC; transition: color 0.1s ease; }
@@ -48,6 +48,8 @@
             <div class="video-player-box"><iframe id="videoPlayer" src="" frameborder="0" allowfullscreen></iframe></div>
             <div class="video-details-box">
                 <h1 id="videoTitle">Carregando título...</h1>
+                <!-- Campo de descrição adicionado -->
+                <p id="videoDesc" style="font-size: 13px; color: #444; margin-bottom: 15px;"></p>
                 <div class="video-meta-row">
                     <div class="author-info">Adicionado por: <a href="#" id="videoAuthor" style="color: #0033CC; font-weight: bold; text-decoration: none;">...</a></div>
                     <div class="stats-info"><span id="videoViews">0</span> visualizações</div>
@@ -92,7 +94,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script>
-        // A lógica permanece a mesma, apenas certifique-se de que este arquivo também esteja salvo como UTF-8
         let supabaseClient = null;
         let idVideoAtual = null;
         let videoData = null;
@@ -132,8 +133,9 @@
         }
 
         function carregarDadosVideo(video) {
-            document.getElementById('videoPlayer').src = video.embedUrl;
+            document.getElementById('videoPlayer').src = video.embed_url || video.embedUrl;
             document.getElementById('videoTitle').innerText = video.titulo;
+            document.getElementById('videoDesc').innerText = video.descricao || ""; // Exibe a descrição
             const authorLink = document.getElementById('videoAuthor');
             authorLink.innerText = video.autor;
             authorLink.href = `canais.html?user=${encodeURIComponent(video.autor)}`;
