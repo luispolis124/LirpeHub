@@ -31,17 +31,30 @@ async function carregarVideo() {
         document.getElementById('videoAutor').innerText = data.autor;
         document.getElementById('videoDescricao').innerText = data.descricao;
 
-        // Lógica do Player (YouTube ou Local)
+        // Lógica do Player (YouTube, Mux ou Local)
         const embedArea = document.getElementById('videoEmbed');
-        if (data.embedurl === "local_file") {
-            embedArea.innerHTML = `<p>Este vídeo é um arquivo local e não pode ser exibido via link direto.</p>`;
-        } else {
+
+        if (data.tipo === "youtube") {
+            // Player YouTube
             embedArea.innerHTML = `
                 <iframe width="100%" height="450" 
                         src="${data.embedurl}" 
                         frameborder="0" 
                         allowfullscreen>
                 </iframe>`;
+        } else if (data.tipo === "mux") {
+            // Player Mux (HLS)
+            embedArea.innerHTML = `
+                <video id="muxPlayer" controls width="100%" height="450" playsinline>
+                    <source src="https://stream.mux.com/${data.playback_id}.m3u8" type="application/x-mpegURL">
+                    Seu navegador não suporta reprodução de vídeo Mux.
+                </video>`;
+        } else if (data.embedurl === "local_file") {
+            // Arquivo local não suportado
+            embedArea.innerHTML = `<p>Este vídeo é um arquivo local e não pode ser exibido via link direto.</p>`;
+        } else {
+            // Fallback
+            embedArea.innerHTML = `<p>Formato de vídeo não suportado.</p>`;
         }
     } catch (err) {
         document.getElementById('videoTitulo').innerText = "Erro inesperado.";
