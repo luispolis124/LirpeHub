@@ -1,0 +1,10 @@
+#regrasContainer ul {
+    list-style-type: disc;
+    padding-left: 20px;
+    margin-top: 10px;
+}
+#regrasContainer li {
+    margin-bottom: 10px;
+    font-family: Arial, sans-serif;
+    color: #333;
+}
