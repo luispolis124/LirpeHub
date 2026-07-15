@@ -143,6 +143,12 @@ vite.config.ts.timestamp-*
 .vite/
 
 # ==========================================
-# 📺 LirpeHub Configs (Arquivos locais privados)
+# 💻 Arquivos Temporários de Sistema
+# ==========================================
+.DS_Store
+Thumbs.db
+
+# ==========================================
+# 📺 LirpeHub Configs (O único arquivo com as chaves reais!)
 # ==========================================
 js/config.js
