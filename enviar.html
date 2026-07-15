@@ -118,7 +118,7 @@
                 descricao: descricao || "", 
                 visualizacoes: "0", 
                 thumb: finalThumbUrl || "", 
-                embedUrl: finalEmbedUrl || "" 
+                embedurl: finalEmbedUrl || "" 
             };
 
             const { error } = await supabaseClient.from('videos').insert([novoVideo]);
