@@ -1,15 +1,15 @@
-// js/main.js - Lógica principal do LirpeHub
+// js/main.js - Lógica principal do LirpeHub (Unificada e Segura)
 
 let supabaseClient = null;
 
-// Inicializa o cliente apenas se o config.js estiver carregado
+// Inicializa o cliente Supabase
 if (typeof CONFIG !== 'undefined') {
     supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 } else {
-    console.error("Erro: js/config.js não carregado. O Supabase não será inicializado.");
+    console.error("Erro: js/config.js não carregado.");
 }
 
-// Vídeo padrão de backup
+// Vídeo padrão de backup (Caso o banco falhe ou esteja vazio)
 const videosPadrao = [
     {
         id: "1",
@@ -18,7 +18,7 @@ const videosPadrao = [
         visualizacoes: "399,580,346",
         data: "Há 21 anos",
         thumb: "https://img.youtube.com/vi/jNQXAC9IVRw/mqdefault.jpg", 
-        embedurl: "https://www.youtube.com/embed/jNQXAC9IVRw"
+        copyright_strike: false
     }
 ];
 
@@ -34,32 +34,44 @@ function renderizarVideos(videos) {
         return;
     }
     
-    videos.forEach(video => {
+    // Filtro de segurança: Remove vídeos marcados com copyright_strike
+    const videosSeguros = videos.filter(v => v.copyright_strike !== true);
+
+    videosSeguros.forEach(video => {
         const card = document.createElement('div');
         card.className = 'video-card';
+        // Usa a data do banco se existir, senão usa a string 'data' do objeto
+        const dataExibicao = video.created_at ? new Date(video.created_at).toLocaleDateString() : (video.data || "Recente");
+        
         card.innerHTML = `
             <a href="watch.html?v=${video.id}">
                 <img src="${video.thumb}" alt="${video.titulo}" class="thumb" onerror="this.src='https://placehold.co/300x180?text=LirpeHub';">
                 <h3><a href="watch.html?v=${video.id}">${video.titulo}</a></h3>
             </a>
             <p>Por: <strong><a href="canais.html?user=${encodeURIComponent(video.autor)}" style="color: #0033CC; text-decoration: none;">${video.autor}</a></strong></p>
-            <p>${video.visualizacoes} views • ${video.data}</p>
+            <p>${video.visualizacoes || 0} views • ${dataExibicao}</p>
         `;
         container.appendChild(card);
     });
 }
 
-// 2. FUNÇÃO: Carrega todos os vídeos da página inicial
+// 2. FUNÇÃO: Carrega todos os vídeos (Segura)
 async function carregarTodosOsVideos() {
     const container = document.getElementById('videoContainer');
-    if (!container || !supabaseClient) return;
+    if (!container) return;
     
     container.innerHTML = 'Carregando vídeos...';
+
+    if (!supabaseClient) {
+        renderizarVideos(videosPadrao);
+        return;
+    }
 
     try {
         let { data, error } = await supabaseClient
             .from('videos')
             .select('*')
+            .eq('copyright_strike', false) // Filtro de segurança
             .order('id', { ascending: false });
 
         if (error || !data || data.length === 0) {
@@ -68,12 +80,12 @@ async function carregarTodosOsVideos() {
             renderizarVideos(data);
         }
     } catch (e) {
-        console.warn("Erro ao carregar vídeos:", e);
+        console.warn("Erro ao carregar:", e);
         renderizarVideos(videosPadrao);
     }
 }
 
-// 3. FUNÇÃO: Filtra os vídeos no Supabase
+// 3. FUNÇÃO: Filtra os vídeos por tag (Segura)
 async function filtrarVideosPorTag(tag) {
     const container = document.getElementById('videoContainer');
     if (!container || !supabaseClient) return;
@@ -84,6 +96,7 @@ async function filtrarVideosPorTag(tag) {
         let { data, error } = await supabaseClient
             .from('videos')
             .select('*')
+            .eq('copyright_strike', false)
             .ilike('tags', `%${tag}%`)
             .order('id', { ascending: false });
 
@@ -94,12 +107,10 @@ async function filtrarVideosPorTag(tag) {
     }
 }
 
-// 4. FUNÇÃO: Busca vídeos por título ou autor
+// 4. FUNÇÃO: Busca vídeos por título ou autor (Segura)
 async function buscarVideos() {
     const searchInput = document.getElementById('searchInput');
-    if (!searchInput) return;
-    
-    const termo = searchInput.value.trim();
+    const termo = searchInput ? searchInput.value.trim() : "";
     const container = document.getElementById('videoContainer');
     
     if (!termo) {
@@ -113,6 +124,7 @@ async function buscarVideos() {
         const { data, error } = await supabaseClient
             .from('videos')
             .select('*')
+            .eq('copyright_strike', false)
             .or(`titulo.ilike.%${termo}%,autor.ilike.%${termo}%`)
             .order('id', { ascending: false });
 
@@ -126,7 +138,7 @@ async function buscarVideos() {
     }
 }
 
-// 5. FUNÇÃO: Carrega criadores recentes
+// 5. FUNÇÃO: Carrega criadores recentes (Segura)
 async function carregarUsuariosRecentes() {
     const authorsList = document.getElementById('dynamicAuthors');
     if (!authorsList || !supabaseClient) return;
@@ -135,6 +147,7 @@ async function carregarUsuariosRecentes() {
         let { data } = await supabaseClient
             .from('videos')
             .select('autor')
+            .eq('copyright_strike', false)
             .order('id', { ascending: false })
             .limit(10);
 
