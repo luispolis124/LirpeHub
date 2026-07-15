@@ -27,10 +27,10 @@
             <span class="slogan">Broadcast Yourself</span>
         </div>
         <nav class="nav-links">
-            <a href="index.html">Página Inicial</a> | 
-            <a href="#">Vídeos</a> | 
+            <a href="index.html">P�gina Inicial</a> | 
+            <a href="#">V�deos</a> | 
             <a href="canais.html" class="active">Canais</a> |
-            <a href="enviar.html" style="color: #CC0000; font-weight: bold;">Enviar Vídeo</a>
+            <a href="enviar.html" style="color: #CC0000; font-weight: bold;">Enviar V�deo</a>
         </nav>
     </header>
 
@@ -40,23 +40,27 @@
             <div class="channel-avatar" id="canalAvatar">?</div>
             <div class="channel-info">
                 <h2 id="canalNome">Carregando Canal...</h2>
-                <p id="canalSub">Carregando estatísticas...</p>
+                <p id="canalSub">Carregando estat�sticas...</p>
+                
+                <button id="btnInscricao" onclick="toggleInscricao()" style="margin-top: 10px; cursor: pointer; display: none;">
+                    Carregando...
+                </button>
+                
                 <div id="statusDono" style="display: none;">
-                    <span class="owner-badge">Seu Espaço (Dono)</span>
+                    <span class="owner-badge">Seu Espa�o (Dono)</span>
                 </div>
             </div>
         </div>
 
-        <!-- Adição da Descrição do Canal -->
         <div style="background: #FFF; border: 1px solid #CCC; padding: 10px; margin-bottom: 20px; font-size: 12px; color: #333;">
             <h4 style="margin: 0 0 5px 0; color: #555; border-bottom: 1px solid #EEE; padding-bottom: 2px;">Sobre o canal:</h4>
-            <p id="canalDescricao" style="margin: 5px 0 0 0; line-height: 1.4; font-style: italic;">Carregando descrição...</p>
+            <p id="canalDescricao" style="margin: 5px 0 0 0; line-height: 1.4; font-style: italic;">Carregando descri��o...</p>
         </div>
 
         <div class="main-content-layout" style="margin: 0; padding: 0;">
             <div class="video-column">
                 <h3 style="background: #EAEAEA; border: 1px solid #CCCCCC; padding: 5px; margin: 0 0 15px 0; font-size: 13px; color: #333;" id="secaoTitulo">
-                    📺 Vídeos de ...
+                     V�deos de ...
                 </h3>
                 <main class="video-grid" id="canalVideosContainer" style="margin-top: 0;"></main>
             </div>
@@ -64,29 +68,16 @@
             <aside class="sidebar-column">
                 <div style="border: 1px solid #CCD2E0; background: #F0F3F8; padding: 10px; margin-bottom: 15px;">
                     <h4 style="margin: 0 0 8px 0; color: #0033CC; border-bottom: 1px solid #CCD2E0; padding-bottom: 3px; font-size: 12px;">
-                        📊 Detalhes do Canal
+                         Detalhes do Canal
                     </h4>
                     <ul style="list-style: none; padding: 0; margin: 0; line-height: 1.8;">
-                        <li><strong>Inscrição:</strong> <span id="membroDesde">Recente</span></li>
-                        <li><strong>Vídeos Enviados:</strong> <span id="totalVideos">0</span></li>
+                        <li><strong>Inscri��o:</strong> <span id="membroDesde">Recente</span></li>
+                        <li><strong>V�deos Enviados:</strong> <span id="totalVideos">0</span></li>
                     </ul>
-                </div>
-
-                <div id="painelDono" style="border: 1px solid #B4C3E2; background: #E3ECFC; padding: 10px; display: none;">
-                    <h4 style="margin: 0 0 8px 0; color: #0033CC; border-bottom: 1px solid #B4C3E2; padding-bottom: 3px; font-size: 12px;">
-                        🛠️ Painel do Criador
-                    </h4>
-                    <button class="btn-classic" onclick="window.location.href='enviar.html'" style="width: 100%; padding: 4px; cursor: pointer; font-size: 11px;">
-                        + Enviar Novo Vídeo
-                    </button>
                 </div>
             </aside>
         </div>
     </div>
-
-    <footer class="main-footer">
-        <p>&copy; 2005 LirpeHub, Inc. | <a href="#">Sobre Nós</a> | <a href="#">Ajuda</a></p>
-    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="js/config.js" defer></script>
@@ -104,63 +95,79 @@
         async function carregarCanal() {
             const urlParams = new URLSearchParams(window.location.search);
             let canalAlvo = urlParams.get('user');
-            let displayLogado = "";
+            let userEmail = "";
+
+            if (!canalAlvo) return;
+
+            // --- IMPLEMENTA��O DA CONTAGEM DE INSCRITOS ---
+            const { count } = await supabaseClient
+                .from('inscricoes')
+                .select('*', { count: 'exact', head: true })
+                .eq('canal_seguido', canalAlvo);
+            
+            document.getElementById('canalSub').innerText = `${count || 0} inscritos`;
+            // ----------------------------------------------
 
             try {
                 const { data: { session } } = await supabaseClient.auth.getSession();
-                if (session) displayLogado = session.user.user_metadata?.display_name || session.user.email.split('@')[0];
+                if (session) {
+                    userEmail = session.user.email;
+                    if (canalAlvo.toLowerCase() === (session.user.user_metadata?.display_name || '').toLowerCase()) {
+                        document.getElementById('statusDono').style.display = 'block';
+                    } else {
+                        verificarInscricao(canalAlvo, userEmail);
+                    }
+                }
             } catch (err) { console.warn(err); }
 
-            if (!canalAlvo) {
-                if (displayLogado) { window.location.href = `canais.html?user=${encodeURIComponent(displayLogado)}`; return; }
-                document.getElementById('canalNome').innerText = "Canal não encontrado";
-                return;
-            }
-
             document.getElementById('canalNome').innerText = canalAlvo;
-            document.getElementById('secaoTitulo').innerText = `📺 Vídeos de ${canalAlvo}`;
             document.getElementById('canalAvatar').innerText = canalAlvo.charAt(0).toUpperCase();
 
-            if (displayLogado && displayLogado.toLowerCase() === canalAlvo.toLowerCase()) {
-                document.getElementById('statusDono').style.display = 'block';
-                document.getElementById('painelDono').style.display = 'block';
-            }
-
             try {
-                const { data: videos, error } = await supabaseClient
-                    .from('videos')
-                    .select('*')
-                    .eq('autor', canalAlvo);
-
-                if (error) throw error;
-
-                const container = document.getElementById('canalVideosContainer');
-                container.innerHTML = '';
-
-                if (!videos || videos.length === 0) {
-                    container.innerHTML = `<p>Este canal ainda não enviou vídeos.</p>`;
-                    document.getElementById('canalDescricao').innerText = "Bem-vindo ao meu canal!";
-                } else {
+                const { data: videos } = await supabaseClient.from('videos').select('*').eq('autor', canalAlvo);
+                if (videos && videos.length > 0) {
+                    document.getElementById('canalDescricao').innerText = videos[0].descricao || "Bem-vindo ao meu canal!";
                     document.getElementById('totalVideos').innerText = videos.length;
-                    // Pega a descrição do primeiro vídeo encontrado
-                    document.getElementById('canalDescricao').innerText = videos[0].descricao || "Este usuário ainda não adicionou uma descrição.";
-                    
-                    videos.forEach(v => {
-                        const item = document.createElement('div');
-                        item.className = 'video-card';
-                        item.innerHTML = `
-                            <a href="watch.html?v=${v.id}"><img src="${v.thumb}" class="video-thumb" alt="${v.titulo}"></a>
-                            <div class="video-info">
-                                <a href="watch.html?v=${v.id}" class="video-title">${v.titulo}</a>
-                                <span class="video-views">${v.visualizacoes} views</span>
-                            </div>
-                        `;
-                        container.appendChild(item);
-                    });
                 }
-            } catch (err) {
-                console.error("Erro:", err);
+            } catch (e) { console.error(e); }
+        }
+
+        async function verificarInscricao(canalAlvo, emailSeguidor) {
+            if (!emailSeguidor) return;
+            const btn = document.getElementById('btnInscricao');
+            btn.style.display = 'inline-block';
+            
+            const { data } = await supabaseClient.from('inscricoes').select('*').eq('seguidor_email', emailSeguidor).eq('canal_seguido', canalAlvo);
+            
+            if (data && data.length > 0) {
+                btn.innerText = " Inscrito";
+                btn.dataset.inscrito = "true";
+            } else {
+                btn.innerText = "+ Inscrever-se";
+                btn.dataset.inscrito = "false";
             }
+        }
+
+        async function toggleInscricao() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) { alert("Fa�a login para se inscrever!"); return; }
+
+            const canalAlvo = new URLSearchParams(window.location.search).get('user');
+            const email = session.user.email;
+            const btn = document.getElementById('btnInscricao');
+            const jaInscrito = btn.dataset.inscrito === "true";
+
+            if (jaInscrito) {
+                await supabaseClient.from('inscricoes').delete().eq('seguidor_email', email).eq('canal_seguido', canalAlvo);
+                btn.innerText = "+ Inscrever-se";
+                btn.dataset.inscrito = "false";
+            } else {
+                await supabaseClient.from('inscricoes').insert([{ seguidor_email: email, canal_seguido: canalAlvo }]);
+                btn.innerText = " Inscrito";
+                btn.dataset.inscrito = "true";
+            }
+            // Atualiza contagem ap�s clique
+            carregarCanal(); 
         }
     </script>
 </body>
