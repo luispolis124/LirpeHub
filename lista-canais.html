@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Canais - LirpeHub</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <style>
+        .container { max-width: 800px; margin: 20px auto; font-family: Arial, sans-serif; }
+        .canais-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .canais-table th, .canais-table td { border-bottom: 1px solid #CCC; padding: 12px; text-align: left; }
+        .canal-link { color: #0033CC; font-weight: bold; text-decoration: none; }
+        .canal-link:hover { text-decoration: underline; }
+
+        /* Logo estilo igual ao da imagem */
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .logo .lirpe {
+            color: #000; /* preto */
+        }
+        .logo .hub {
+            color: #FFF; /* branco */
+            background-color: #CC0000; /* caixa vermelha */
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 2px;
+        }
+
+        .nav-links {
+            margin-left: 15px;
+            display: inline-block;
+        }
+        .nav-links a {
+            color: #0033CC;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 0 5px;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        .nav-links .active {
+            color: #CC0000;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="logo-container">
+            <a href="index.html" class="logo">
+                <span class="lirpe">Lirpe</span><span class="hub">Hub</span>
+            </a>
+        </div>
+        <nav class="nav-links">
+            <a href="index.html">Página Inicial</a> | 
+            <a href="enviar.html">Enviar Vídeo</a> | 
+            <a href="diretrizes.html">Diretrizes</a> | 
+            <a href="lista-canais.html" class="active">Canais</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h2>Lista de Criadores</h2>
+        <table class="canais-table">
+            <thead>
+                <tr>
+                    <th>Nome do Canal</th>
+                    <th>Vídeos Publicados</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody id="tabelaCanais">
+                <tr><td colspan="3">Carregando lista de canais...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script>
+        const supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+
+        async function carregarCanais() {
+            const tbody = document.getElementById('tabelaCanais');
+            
+            // Busca todos os vídeos para agrupar e contar
+            const { data: videos, error } = await supabaseClient
+                .from('videos')
+                .select('autor');
+
+            if (error) {
+                tbody.innerHTML = '<tr><td colspan="3">Erro ao carregar canais.</td></tr>';
+                return;
+            }
+
+            // Agrupa vídeos por autor
+            const contagem = videos.reduce((acc, v) => {
+                acc[v.autor] = (acc[v.autor] || 0) + 1;
+                return acc;
+            }, {});
+
+            // Converte para array e ordena
+            const lista = Object.keys(contagem).map(nome => ({
+                nome,
+                total: contagem[nome]
+            })).sort((a, b) => b.total - a.total);
+
+            tbody.innerHTML = lista.map(c => `
+                <tr>
+                    <td><a href="canais.html?user=${encodeURIComponent(c.nome)}" class="canal-link">${c.nome}</a></td>
+                    <td>${c.total} vídeo(s)</td>
+                    <td><a href="canais.html?user=${encodeURIComponent(c.nome)}">Ver Canal</a></td>
+                </tr>
+            `).join('');
+        }
+
+        carregarCanais();
+    </script>
+</body>
+</html>
